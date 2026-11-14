@@ -272,7 +272,7 @@ export function AppProvider({ children }) {
       title: task.title,
       link: task.link ?? null,
       est_minutes: task.est_minutes ?? null,
-      planned_date: addDay(baseDay, index),
+      planned_date: task.planned_date ?? addDay(baseDay, index),
       completed_at: null,
       minutes_spent: null,
       created_at: new Date().toISOString(),

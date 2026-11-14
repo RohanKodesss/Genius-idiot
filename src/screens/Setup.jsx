@@ -4,14 +4,16 @@ import { CheckCircle2, Plus } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Button, Card, Input } from '../components/ui';
 import MarkdownImporter from '../components/MarkdownImporter';
+import TaskCardBuilder from '../components/TaskCardBuilder';
 
 // Onboarding: create goals, import a roadmap for each, then continue.
 export default function Setup() {
-  const { goals, tasksByGoal, addGoal, importRoadmap, notify } = useApp();
+  const { goals, tasksByGoal, addGoal, importRoadmap, notify, today } = useApp();
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [minutes, setMinutes] = useState('60');
   const [selected, setSelected] = useState(goals[0]?.id ?? null);
+  const [method, setMethod] = useState('cards');
   const [busy, setBusy] = useState(false);
 
   const selectedGoal = goals.find((goal) => goal.id === selected) ?? goals[0];
@@ -101,19 +103,64 @@ export default function Setup() {
 
             {selectedGoal && (
               <div className="mt-6">
-                <MarkdownImporter
-                  key={selectedGoal.id}
-                  importLabel={`Import into ${selectedGoal.name}`}
-                  onImport={async (tasks) => {
-                    const res = await importRoadmap(selectedGoal.id, tasks);
-                    if (res.ok) {
-                      notify(
-                        `${tasks.length} task${tasks.length === 1 ? '' : 's'} added to ${selectedGoal.name}.`,
-                        'success',
-                      );
-                    }
-                  }}
-                />
+                <div
+                  role="tablist"
+                  aria-label="Roadmap entry method"
+                  className="mb-5 inline-flex gap-1 rounded-xl border border-sand bg-ivory p-1"
+                >
+                  {[
+                    { id: 'cards', label: 'Card builder' },
+                    { id: 'markdown', label: 'Markdown' },
+                  ].map((tab) => (
+                    <button
+                      key={tab.id}
+                      role="tab"
+                      type="button"
+                      aria-selected={method === tab.id}
+                      onClick={() => setMethod(tab.id)}
+                      className={`rounded-lg px-3 py-1.5 text-sm transition ${
+                        method === tab.id
+                          ? 'bg-sand text-ink'
+                          : 'text-slate hover:text-ink'
+                      }`}
+                    >
+                      {tab.label}
+                    </button>
+                  ))}
+                </div>
+
+                {method === 'cards' ? (
+                  <TaskCardBuilder
+                    key={`cards-${selectedGoal.id}`}
+                    startDay={today}
+                    importLabel={`Add to ${selectedGoal.name}`}
+                    onImport={async (tasks) => {
+                      const res = await importRoadmap(selectedGoal.id, tasks);
+                      if (res.ok) {
+                        notify(
+                          `${tasks.length} task${tasks.length === 1 ? '' : 's'} added to ${selectedGoal.name}.`,
+                          'success',
+                        );
+                      }
+                      return res;
+                    }}
+                  />
+                ) : (
+                  <MarkdownImporter
+                    key={`md-${selectedGoal.id}`}
+                    importLabel={`Import into ${selectedGoal.name}`}
+                    onImport={async (tasks) => {
+                      const res = await importRoadmap(selectedGoal.id, tasks);
+                      if (res.ok) {
+                        notify(
+                          `${tasks.length} task${tasks.length === 1 ? '' : 's'} added to ${selectedGoal.name}.`,
+                          'success',
+                        );
+                      }
+                      return res;
+                    }}
+                  />
+                )}
               </div>
             )}
           </Card>
