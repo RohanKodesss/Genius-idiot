@@ -163,7 +163,8 @@ export default function GoalDashboard() {
       <Card>
         <h2 className="font-display text-xl text-ink">Roadmap</h2>
         <p className="mt-1 mb-4 text-sm text-slate">
-          One task per day. Reordering changes what comes next, not the daily load.
+          One task per day. Tasks complete when their timer finishes; reordering changes what comes
+          next, not the daily load.
         </p>
         {tasks.length ? (
           <RoadmapList goalId={goal.id} tasks={tasks} />

@@ -4,7 +4,6 @@ import { formatDay } from '../lib/dates';
 // One roadmap line: status, title, link, edit/reorder/delete.
 export default function TaskRow({
   task,
-  onComplete,
   onUndo,
   onEdit,
   onDelete,
@@ -16,12 +15,14 @@ export default function TaskRow({
   const done = Boolean(task.completed_at);
   return (
     <li className="group flex items-start gap-3 py-2.5 border-b border-sand last:border-b-0">
+      {/* Completion is timer-only; the circle is a status marker except for undo. */}
       <button
         type="button"
-        onClick={() => (done ? onUndo(task.id) : onComplete(task.id))}
-        aria-pressed={done}
-        aria-label={done ? `Undo ${task.title}` : `Mark ${task.title} as complete`}
-        className="mt-0.5 w-6 h-6 shrink-0 rounded-full flex items-center justify-center text-slate hover:text-champagne"
+        onClick={() => onUndo(task.id)}
+        disabled={!done}
+        aria-label={done ? `Undo ${task.title}` : `${task.title} — completes when its timer finishes`}
+        title={done ? undefined : 'Completes when its timer finishes'}
+        className="mt-0.5 w-6 h-6 shrink-0 rounded-full flex items-center justify-center text-slate hover:text-champagne disabled:cursor-default disabled:hover:text-slate"
       >
         {done ? (
           <Check className="w-4 h-4 text-sage" aria-hidden="true" />

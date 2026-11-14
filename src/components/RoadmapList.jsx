@@ -5,7 +5,7 @@ import { Button, Input } from './ui';
 import TaskRow from './TaskRow';
 
 export default function RoadmapList({ goalId, tasks }) {
-  const { completeTask, undoTask, updateTask, deleteTask, reorderTask, addTask } = useApp();
+  const { undoTask, updateTask, deleteTask, reorderTask, addTask } = useApp();
   const [editing, setEditing] = useState(null);
   const [draft, setDraft] = useState({ title: '', link: '', est_minutes: '' });
   const [adding, setAdding] = useState(false);
@@ -28,7 +28,6 @@ export default function RoadmapList({ goalId, tasks }) {
             task={task}
             isFirst={index === 0}
             isLast={index === ordered.length - 1}
-            onComplete={completeTask}
             onUndo={undoTask}
             onMoveUp={(row) => move(row, -1)}
             onMoveDown={(row) => move(row, 1)}
