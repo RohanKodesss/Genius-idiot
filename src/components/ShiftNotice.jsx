@@ -1,6 +1,7 @@
 import { AlertTriangle, ArrowRight } from 'lucide-react';
+import { formatDay } from '../lib/dates';
 
-// "Task 8 moved from Nov 8 → Nov 9 (+1 day). All later tasks shifted."
+// "Landing copy moved from Fri, Nov 13 → Sat, Nov 14 (+1 day). All later tasks shifted."
 export default function ShiftNotice({ projection }) {
   const shifted = projection.filter((task) => task.shift > 0);
   if (!shifted.length) return null;
@@ -13,11 +14,14 @@ export default function ShiftNotice({ projection }) {
       </p>
       <ul className="mt-2 space-y-1">
         {shifted.slice(0, 3).map((task) => (
-          <li key={task.id} className="flex items-center gap-1.5 text-sm text-ink">
-            <span className="truncate">{task.title}</span>
-            <span className="inline-flex items-center gap-1 text-xs text-slate tabular-nums shrink-0">
-              <ArrowRight className="w-3 h-3" aria-hidden="true" />
-              {task.planned_date} → {task.projected} (+{task.shift} day{task.shift === 1 ? '' : 's'})
+          <li key={task.id} className="text-sm">
+            <span className="text-ink">{task.title}</span>
+            <span className="mt-0.5 flex items-center gap-1 text-xs text-slate">
+              <ArrowRight className="w-3 h-3 shrink-0" aria-hidden="true" />
+              {formatDay(task.planned_date)} → {formatDay(task.projected)}
+              <span className="text-terracotta">
+                ({task.shift} day{task.shift === 1 ? '' : 's'} later)
+              </span>
             </span>
           </li>
         ))}

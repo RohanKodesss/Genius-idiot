@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Check } from 'lucide-react';
 import { parseMarkdown } from '../lib/markdown';
-import { addDay } from '../lib/dates';
+import { addDay, formatDay } from '../lib/dates';
 import { Button, Input } from './ui';
 
 const EXAMPLE = `# DSA
@@ -98,7 +98,7 @@ export default function MarkdownImporter({ onImport, importLabel = 'Import roadm
               <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-sage">
                 <Check className="w-3.5 h-3.5" aria-hidden="true" />
                 {parsed.tasks.length} task{parsed.tasks.length === 1 ? '' : 's'} parsed
-                {lastDay && ` · ${start} → ${lastDay}`}
+                {lastDay && ` · ${formatDay(start)} → ${formatDay(lastDay)}`}
               </p>
             )}
 

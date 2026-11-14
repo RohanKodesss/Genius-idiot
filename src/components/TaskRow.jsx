@@ -1,4 +1,5 @@
 import { ArrowDown, ArrowUp, Check, Circle, ExternalLink, Pencil, Trash2 } from 'lucide-react';
+import { formatDay } from '../lib/dates';
 
 // One roadmap line: status, title, link, edit/reorder/delete.
 export default function TaskRow({
@@ -34,8 +35,8 @@ export default function TaskRow({
           <span className="text-mist tabular-nums text-xs mr-2">{task.order}</span>
           {task.title}
         </p>
-        <p className="text-xs text-mist mt-0.5 tabular-nums">
-          planned {task.planned_date}
+        <p className="text-xs text-mist mt-0.5">
+          Planned {formatDay(task.planned_date)}
           {task.est_minutes ? ` · ${task.est_minutes} min` : ''}
           {done && task.minutes_spent != null ? ` · logged ${task.minutes_spent} min` : ''}
         </p>

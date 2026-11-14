@@ -8,5 +8,8 @@ export const addDay = (day, n) => toDay(addDays(fromDay(day), n));
 export const diffDay = (a, b) => differenceInCalendarDays(fromDay(a), fromDay(b));
 export const todayOf = (now = new Date()) => toDay(now);
 
+// 'YYYY-MM-DD' -> 'Fri, Nov 13'. Never show the raw ISO string to a person.
+export const formatDay = (day) => format(fromDay(day), 'EEE, MMM d');
+
 // completed_at (moment) -> the local calendar day it happened on.
 export const dayOf = (iso) => (iso ? toDay(new Date(iso)) : null);

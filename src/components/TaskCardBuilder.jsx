@@ -1,8 +1,7 @@
 // Kanban-style roadmap entry: one card per task, a start date seeds the queue.
 import { useState } from 'react';
-import { format } from 'date-fns';
 import { CalendarDays, Plus, X } from 'lucide-react';
-import { addDay, fromDay } from '../lib/dates';
+import { addDay, formatDay } from '../lib/dates';
 import { buildTaskRows } from '../lib/roadmap';
 import { Button, Input } from './ui';
 
@@ -64,9 +63,9 @@ export default function TaskCardBuilder({ startDay, onImport, importLabel = 'Add
               }`}
             >
               <div className="flex items-center justify-between gap-2">
-                <span className="inline-flex items-center gap-1 text-xs text-champagne tabular-nums">
+                <span className="inline-flex items-center gap-1 text-xs text-champagne">
                   <CalendarDays className="w-3.5 h-3.5" aria-hidden="true" />
-                  {date ? format(fromDay(date), 'EEE, MMM d') : 'No start date'}
+                  {date ? formatDay(date) : 'No start date'}
                 </span>
                 <button
                   type="button"
@@ -121,9 +120,9 @@ export default function TaskCardBuilder({ startDay, onImport, importLabel = 'Add
       <div className="mt-5 flex flex-wrap items-center justify-between gap-3">
         <p className="text-xs text-mist">
           {tasks.length
-            ? `${tasks.length} task${tasks.length === 1 ? '' : 's'} ready · ${
-                tasks[0].planned_date
-              } → ${tasks[tasks.length - 1].planned_date}`
+            ? `${tasks.length} task${tasks.length === 1 ? '' : 's'} ready · ${formatDay(
+                tasks[0].planned_date,
+              )} → ${formatDay(tasks[tasks.length - 1].planned_date)}`
             : 'Add at least one task title.'}
         </p>
         <Button onClick={submit} disabled={busy || !tasks.length || validationErrors.length > 0 || !start}>

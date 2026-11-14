@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ExternalLink, Moon, RotateCcw } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { formatDay } from '../lib/dates';
 import GoalTimer from './GoalTimer';
 import MinutesInput from './MinutesInput';
 import StreakBadge from './StreakBadge';
@@ -43,7 +44,8 @@ export default function GoalCard({ goal, projection, streak, progress, restToday
             )}
             {task.shift > 0 && (
               <p className="mt-2 text-xs text-terracotta tabular-nums">
-                shifted +{task.shift} day{task.shift === 1 ? '' : 's'} · planned {task.planned_date}
+                {task.shift} day{task.shift === 1 ? '' : 's'} later · was planned{' '}
+                {formatDay(task.planned_date)}
               </p>
             )}
             <div className="mt-4 flex flex-col gap-2">
@@ -102,7 +104,7 @@ export default function GoalCard({ goal, projection, streak, progress, restToday
           <p className="text-xs text-sage tabular-nums">Roadmap complete · {progress.total} tasks</p>
         ) : (
           <p className="text-xs text-mist tabular-nums">
-            {progress.done} / {progress.total} tasks · est. finish {progress.eta}
+            {progress.done} / {progress.total} tasks · est. finish {formatDay(progress.eta)}
           </p>
         )}
       </footer>

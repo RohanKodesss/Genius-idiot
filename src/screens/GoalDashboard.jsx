@@ -108,7 +108,9 @@ export default function GoalDashboard() {
 
       <Card>
         <h2 className="font-display text-xl text-ink">Next 7 tasks</h2>
-        <p className="mt-1 mb-4 text-sm text-slate">Planned date versus what actually happens.</p>
+        <p className="mt-1 mb-4 text-sm text-slate">
+          When each task was planned, and when it now happens.
+        </p>
         <SmartCalendar projection={projection} today={today} />
       </Card>
 
