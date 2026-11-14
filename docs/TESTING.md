@@ -763,7 +763,7 @@ Run each in order. Tick each box only if it works end-to-end in a browser.
 
 - [ ] **UAT-1:** I can create 3 goals (DSA, Web Dev, Content Writing) with daily minutes.
 - [ ] **UAT-2:** I can paste a Markdown roadmap for each goal and see a preview before confirming.
-- [ ] **UAT-3:** The dashboard is **blocked** until every goal has a roadmap (gate step works).
+- [ ] **UAT-3:** The dashboard is **blocked** until every goal has a roadmap (gate step works), unless **Set up later** was pressed.
 - [ ] **UAT-4:** After onboarding, the Today screen shows **one task per goal**.
 - [ ] **UAT-5:** I can mark a task complete at any time (even with 0 minutes logged) and the streak for that goal increments.
 - [ ] **UAT-6:** I can complete a task in 30 min (vs 70 planned) and it still counts.

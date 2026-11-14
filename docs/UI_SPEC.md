@@ -371,7 +371,7 @@ App
 
 ### 3.2 Setup / Onboarding — `/setup`
 
-**Purpose:** create goals and import roadmaps. This is the **gate step** — the user cannot reach the dashboard until every goal has a roadmap (PRD §5.1A #2).
+**Purpose:** create goals and import roadmaps. This is the **gate step** — the user cannot reach the dashboard until every goal has a roadmap (PRD §5.1A #2), unless they press **Set up later**.
 
 **Layout (two-column on desktop, stacked on mobile)**
 

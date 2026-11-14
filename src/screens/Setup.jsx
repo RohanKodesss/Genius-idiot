@@ -9,7 +9,7 @@ import QuickImport from '../components/QuickImport';
 
 // Onboarding: create goals, import a roadmap for each, then continue.
 export default function Setup() {
-  const { goals, tasksByGoal, addGoal, importRoadmap, notify, today } = useApp();
+  const { authUser, goals, tasksByGoal, addGoal, importRoadmap, notify, today } = useApp();
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [minutes, setMinutes] = useState('60');
@@ -20,6 +20,12 @@ export default function Setup() {
   const selectedGoal = goals.find((goal) => goal.id === selected) ?? goals[0];
   const taskCount = (goalId) => tasksByGoal[goalId]?.length ?? 0;
   const ready = goals.length > 0 && goals.every((goal) => taskCount(goal.id) > 0);
+
+  // Escape hatch: leave onboarding without adding any tasks.
+  const later = () => {
+    skipSetup(authUser.id);
+    navigate('/');
+  };
 
   const handleImport = async (tasks) => {
     if (!selectedGoal) return { ok: false };
@@ -48,7 +54,16 @@ export default function Setup() {
   return (
     <main className="min-h-screen bg-ivory px-4 py-10 lg:py-14">
       <div className="max-w-3xl mx-auto">
-        <p className="font-display text-2xl text-ink tracking-tight">GENIUS IDIOT</p>
+        <div className="flex items-start justify-between gap-3">
+          <p className="font-display text-2xl text-ink tracking-tight">GENIUS IDIOT</p>
+          <button
+            type="button"
+            onClick={later}
+            className="mt-1 text-xs text-slate hover:text-ink underline underline-offset-4 shrink-0"
+          >
+            Set up later
+          </button>
+        </div>
         <h1 className="mt-6 font-display text-3xl text-ink">Set up your library</h1>
         <p className="mt-2 text-sm text-slate max-w-xl">
           One goal, one queue. Create a goal and import its roadmap — one task per day, no

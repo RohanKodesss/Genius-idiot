@@ -130,7 +130,7 @@ email** temporarily (the app still refuses unconfirmed sessions, but new signups
    - **Markdown**: paste a strict checklist, preview, import.
    - **Quick paste**: paste a plain list, a spreadsheet column, or drop a `.txt` / `.csv` file.
    - Every method uses the same start date, so you can mix them per goal.
-4. Repeat for each goal. The setup gate keeps you on this screen until every goal has at least one task.
+4. Repeat for each goal. The setup gate keeps you on this screen until every goal has at least one task — or press **Set up later** to use the dashboard first.
 5. Press **Go to today**.
 
 You now see one card per goal with today's task. Press **Complete** on one — the card updates

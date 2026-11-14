@@ -227,7 +227,7 @@ Notification shown: *"Task 8 moved from Nov 8 → Nov 9 (+1 day). All later task
 |---|---|---|
 | FR-I1 | Import roadmap as Markdown (paste or upload) using the strict format below. | Must |
 | FR-I2 | Preview parsed tasks before saving; reject malformed lines with a clear error. | Must |
-| FR-I3 | Roadmap required per goal before the dashboard unlocks (gate step). | Must |
+| FR-I3 | Roadmap required per goal before the dashboard unlocks (gate step), unless the user chooses **Set up later**. | Must |
 
 **Strict Markdown format:**
 ```md
