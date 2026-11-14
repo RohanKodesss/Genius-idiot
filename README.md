@@ -97,20 +97,32 @@ VITE_DEMO_MODE=false
 - Use the **publishable / anon** key. **Never** put the `service_role` key in a frontend env var.
 - If either value is empty, the app silently falls back to demo mode.
 
-### 3.3 Email confirmation
+### 3.3 Email confirmation (required)
 
-Supabase confirms emails by default and the built-in SMTP is limited to a couple of signup emails
-per hour. For testing real accounts, turn off **Authentication → Providers → Email → Confirm email**.
-For production, turn it back on.
+The app opens on **Create your account**, and Supabase sends a confirmation link before the account
+can be used. Unconfirmed signups cannot log in — the app shows a "Confirm your email" screen with a
+resend button.
 
-If confirmation is on, the app tells the user to check their email and does not log them in until the
-address is confirmed.
+Two project settings must match your app URL, or the links in those emails point at the wrong place:
+
+- **Authentication → URL Configuration → Site URL** — set it to the app origin, e.g.
+  `http://localhost:5173` in development.
+- **Redirect URLs** — add `http://localhost:5173/**` (and your production URL later).
+
+This project is already configured for `http://localhost:5173`. If you deploy, add the deployed
+origin to both fields or confirmation links will fail.
+
+The built-in SMTP is limited to a couple of signup emails per hour. For testing real accounts,
+either wait, configure a custom SMTP, or turn off **Authentication → Providers → Email → Confirm
+email** temporarily (the app still refuses unconfirmed sessions, but new signups are auto-confirmed).
 
 ---
 
 ## 4. Your first five minutes
 
-1. **Sign up / log in.** Real Supabase auth, or any credentials in demo mode.
+1. **Create an account.** The app opens on account creation; a new user cannot get in without
+   signing up and confirming the email. Existing users switch to **Log in**. In demo mode any
+   credentials work.
 2. **Set up a goal.** Name it (`DSA`), set daily minutes (`60`), press **Add goal**.
 3. **Add its roadmap** — three ways, same result:
    - **Card builder** (default): set a start date, add cards (title, optional link, optional minutes).
@@ -389,7 +401,8 @@ each sees zero of the other's goals (RLS), and rehearse the missed-day shift onc
 |---|---|---|
 | `PGRST205: Could not find the table 'public.goals'` | schema never applied | run `supabase/schema.sql` in the SQL editor |
 | Login works, dashboard empty, toast "Could not load your data" | wrong env vars, or tables missing | check `.env`, restart `npm run dev` |
-| Signup succeeds but no email arrives | Supabase SMTP rate limit | disable "Confirm email" while testing, or use a custom SMTP |
+| Signup succeeds but no email arrives | Supabase SMTP rate limit (2/hour) | wait, add a custom SMTP, or disable "Confirm email" while testing |
+| Confirmation link opens `localhost:3000` or a blank page | Site URL does not match the app | set **Site URL** / **Redirect URLs** to the app origin |
 | `email rate limit exceeded` (429) | too many signups per hour | wait, or disable confirmation |
 | PATCH/DELETE returns `[]` | RLS: the row isn't yours | the app treats it as 404 and rolls back the optimistic change |
 | App runs from `localStorage` unexpectedly | env vars empty → demo mode | fill in `.env` or set `VITE_DEMO_MODE=false` |

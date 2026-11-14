@@ -210,6 +210,10 @@ export async function logIn() {
   return ok(DEMO_USER);
 }
 
+export async function resendConfirmation() {
+  return ok(null);
+}
+
 export async function logOut() {
   return ok(null);
 }

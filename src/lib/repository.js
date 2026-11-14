@@ -27,20 +27,65 @@ function unwrap(response, { emptyIsOk = false } = {}) {
 }
 
 // ── Auth ────────────────────────────────────────────────────────────────────
+// Every auth result carries `needsConfirmation` when the email is unverified,
+// so the UI can show the verify panel instead of letting the user in.
+const authFail = (error, status) => {
+  const message = error?.message ?? 'Something went wrong.';
+  if (/rate limit/i.test(message)) {
+    return fail(429, error?.code ?? null, 'Too many emails sent. Wait a few minutes and try again.', true);
+  }
+  if (/email not confirmed/i.test(message)) {
+    return { ...fail(403, 'email_not_confirmed', 'Confirm your email first — check your inbox for the link.'), needsConfirmation: true };
+  }
+  return fromError(error, status);
+};
+
+const unconfirmed = (user) => !user?.email_confirmed_at;
+
 export async function signUp(email, password) {
   if (DEMO_MODE) return local.signUp(email, password);
-  const { data, error } = await supabase.auth.signUp({ email, password });
-  if (error) return fromError(error, error.status ?? 400);
+  const { data, error } = await supabase.auth.signUp({
+    email,
+    password,
+    options: { emailRedirectTo: window.location.origin },
+  });
+  if (error) return authFail(error, error.status ?? 400);
   // No session means Supabase wants the email confirmed first.
-  if (!data.session) return { ok: true, data: data.user, needsConfirmation: true };
+  if (!data.session || unconfirmed(data.user)) {
+    return { ok: true, data: data.user, needsConfirmation: true };
+  }
   return { ok: true, data: data.user };
 }
 
 export async function logIn(email, password) {
   if (DEMO_MODE) return local.logIn(email, password);
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
-  if (error) return fromError(error, error.status ?? 401);
+  if (error) return authFail(error, error.status ?? 401);
+  // Defence in depth: never keep a session for an unverified address, even if
+  // the project ever turns "Confirm email" off.
+  if (unconfirmed(data.user)) {
+    await supabase.auth.signOut();
+    return {
+      ok: false,
+      status: 403,
+      code: 'email_not_confirmed',
+      message: 'Confirm your email first — check your inbox for the link.',
+      retryable: false,
+      needsConfirmation: true,
+    };
+  }
   return { ok: true, data: data.user };
+}
+
+export async function resendConfirmation(email) {
+  if (DEMO_MODE) return local.resendConfirmation();
+  const { error } = await supabase.auth.resend({
+    type: 'signup',
+    email,
+    options: { emailRedirectTo: window.location.origin },
+  });
+  if (error) return authFail(error, error.status ?? 400);
+  return { ok: true, data: null };
 }
 
 export async function logOut() {

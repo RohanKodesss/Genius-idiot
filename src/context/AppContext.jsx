@@ -426,6 +426,8 @@ export function AppProvider({ children }) {
     return res;
   };
 
+  const resendConfirmation = async (email) => repo.resendConfirmation(email);
+
   const logOut = async () => {
     await repo.logOut();
     setAuthUser(null);
@@ -461,6 +463,7 @@ export function AppProvider({ children }) {
     reload,
     logIn,
     signUp,
+    resendConfirmation,
     logOut,
     resetDemo,
     completeTask,
