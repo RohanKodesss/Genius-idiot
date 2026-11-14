@@ -4,9 +4,8 @@
 // Frozen before coding. Changing one requires updating the docs first.
 //
 // 1. `planned_date` semantics — FROZEN SNAPSHOT.
-//    Assigned at roadmap creation/edit time (today + 1-based queue index).
-//    NOT recomputed on completion, on read, or at midnight. Recomputed only
-//    when the roadmap is explicitly edited (import, add, delete, reorder).
+//    Assigned when a task is created or imported (start date + queue position).
+//    NOT recomputed on completion, on read, at midnight, or on reorder.
 //    It is the baseline for shift: shift = projected - planned_date.
 //
 // 2. Streak definition — see the header of streaks.js (single source of truth).

@@ -1,7 +1,8 @@
 import { useState } from 'react';
 import { Check } from 'lucide-react';
 import { parseMarkdown } from '../lib/markdown';
-import { Button } from './ui';
+import { addDay } from '../lib/dates';
+import { Button, Input } from './ui';
 
 const EXAMPLE = `# DSA
 - [ ] Arrays basics | https://example.com/arrays
@@ -9,17 +10,31 @@ const EXAMPLE = `# DSA
 - [ ] Sliding window | 45`;
 
 // Textarea -> parse -> preview -> confirm. Never saves a file with errors.
-export default function MarkdownImporter({ onImport, importLabel = 'Import roadmap' }) {
+export default function MarkdownImporter({ onImport, importLabel = 'Import roadmap', startDay }) {
   const [text, setText] = useState('');
   const [parsed, setParsed] = useState(null);
+  const [start, setStart] = useState(startDay ?? '');
   const [busy, setBusy] = useState(false);
 
   const preview = () => setParsed(parseMarkdown(text));
   const clean = parsed && parsed.errors.length === 0 && parsed.tasks.length > 0;
+  const lastDay = clean && start ? addDay(start, parsed.tasks.length - 1) : null;
 
   return (
     <div className="grid lg:grid-cols-2 gap-6">
       <div>
+        <Input
+          label="Start date"
+          type="date"
+          required
+          value={start}
+          onChange={(event) => setStart(event.target.value)}
+          className="w-44"
+        />
+        <p className="mt-1 mb-4 text-xs text-mist">
+          Task 1 lands on this day, task 2 the next, and so on — one task per day.
+        </p>
+
         <label htmlFor="roadmap-md" className="block text-[13px] font-medium text-slate mb-1.5">
           Roadmap Markdown
         </label>
@@ -83,15 +98,21 @@ export default function MarkdownImporter({ onImport, importLabel = 'Import roadm
               <p className="mt-3 inline-flex items-center gap-1.5 text-xs text-sage">
                 <Check className="w-3.5 h-3.5" aria-hidden="true" />
                 {parsed.tasks.length} task{parsed.tasks.length === 1 ? '' : 's'} parsed
+                {lastDay && ` · ${start} → ${lastDay}`}
               </p>
             )}
 
             <Button
               className="mt-4 w-full"
-              disabled={!clean || busy}
+              disabled={!clean || busy || !start}
               onClick={async () => {
                 setBusy(true);
-                await onImport(parsed.tasks);
+                await onImport(
+                  parsed.tasks.map((task, index) => ({
+                    ...task,
+                    planned_date: addDay(start, index),
+                  })),
+                );
                 setBusy(false);
                 setText('');
                 setParsed(null);

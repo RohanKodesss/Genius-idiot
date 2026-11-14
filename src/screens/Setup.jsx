@@ -148,6 +148,7 @@ export default function Setup() {
                 ) : (
                   <MarkdownImporter
                     key={`md-${selectedGoal.id}`}
+                    startDay={today}
                     importLabel={`Import into ${selectedGoal.name}`}
                     onImport={async (tasks) => {
                       const res = await importRoadmap(selectedGoal.id, tasks);
