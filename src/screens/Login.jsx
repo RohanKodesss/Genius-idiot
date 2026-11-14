@@ -3,6 +3,7 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MailCheck } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Button, Input, Spinner } from '../components/ui';
+import ThemeToggle from '../components/ThemeToggle';
 
 export default function Login() {
   const { authUser, logIn, signUp, resendConfirmation, demoMode } = useApp();
@@ -63,6 +64,9 @@ export default function Login() {
 
   return (
     <main className="min-h-screen bg-ivory flex items-center justify-center px-4 py-12">
+      <div className="fixed right-4 top-4">
+        <ThemeToggle className="border-sand bg-parchment" />
+      </div>
       <div className="w-full max-w-sm">
         <p className="font-display text-2xl text-ink tracking-tight text-center">
           GENIUS IDIOT

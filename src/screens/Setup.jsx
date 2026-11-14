@@ -6,6 +6,7 @@ import { Button, Card, Input } from '../components/ui';
 import MarkdownImporter from '../components/MarkdownImporter';
 import TaskCardBuilder from '../components/TaskCardBuilder';
 import QuickImport from '../components/QuickImport';
+import ThemeToggle from '../components/ThemeToggle';
 
 // Onboarding: create goals, import a roadmap for each, then continue.
 export default function Setup() {
@@ -56,13 +57,16 @@ export default function Setup() {
       <div className="max-w-3xl mx-auto">
         <div className="flex items-start justify-between gap-3">
           <p className="font-display text-2xl text-ink tracking-tight">GENIUS IDIOT</p>
-          <button
-            type="button"
-            onClick={later}
-            className="mt-1 text-xs text-slate hover:text-ink underline underline-offset-4 shrink-0"
-          >
-            Set up later
-          </button>
+          <div className="flex items-center gap-1">
+            <ThemeToggle />
+            <button
+              type="button"
+              onClick={later}
+              className="mt-1 text-xs text-slate hover:text-ink underline underline-offset-4 shrink-0"
+            >
+              Set up later
+            </button>
+          </div>
         </div>
         <h1 className="mt-6 font-display text-3xl text-ink">Set up your library</h1>
         <p className="mt-2 text-sm text-slate max-w-xl">

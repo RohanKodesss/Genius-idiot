@@ -12,6 +12,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { formatDay } from '../lib/dates';
+import ThemeToggle from './ThemeToggle';
 
 function MenuItem({ to, icon: Icon, label, onNavigate, end = false }) {
   return (
@@ -22,7 +23,7 @@ function MenuItem({ to, icon: Icon, label, onNavigate, end = false }) {
       className={({ isActive }) =>
         `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
           isActive
-            ? 'bg-obsidian text-parchment shadow-card'
+            ? 'bg-obsidian text-linen shadow-card'
             : 'text-slate hover:bg-ivory hover:text-ink'
         }`
       }
@@ -64,7 +65,7 @@ function SidePanel({ onNavigate }) {
   return (
     <div className="flex h-full min-h-0 flex-col gap-6">
       <Link to="/" onClick={onNavigate} className="flex items-center gap-3">
-        <span className="grid h-10 w-10 place-items-center rounded-2xl bg-obsidian font-display text-lg text-parchment">
+        <span className="grid h-10 w-10 place-items-center rounded-2xl bg-obsidian font-display text-lg text-linen">
           G
         </span>
         <span className="min-w-0">
@@ -106,19 +107,19 @@ function SidePanel({ onNavigate }) {
 
       <div className="mt-auto rounded-2xl bg-obsidian p-4 shadow-card">
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-parchment/50">
+          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-linen/50">
             Overall streak
           </span>
-          <Flame className="h-4 w-4 text-parchment" aria-hidden="true" />
+          <Flame className="h-4 w-4 text-linen" aria-hidden="true" />
         </div>
-        <p className="mt-2 font-display text-3xl leading-none text-parchment tabular-nums">
+        <p className="mt-2 font-display text-3xl leading-none text-linen tabular-nums">
           {overallStreak.current}
-          <span className="ml-1 font-sans text-xs text-parchment/50">
+          <span className="ml-1 font-sans text-xs text-linen/50">
             day{overallStreak.current === 1 ? '' : 's'}
           </span>
         </p>
-        <p className="mt-1 text-[11px] text-parchment/50">Best {overallStreak.longest} days</p>
-        <p className="mt-3 border-t border-parchment/10 pt-3 text-[11px] leading-relaxed text-parchment/60">
+        <p className="mt-1 text-[11px] text-linen/50">Best {overallStreak.longest} days</p>
+        <p className="mt-3 border-t border-linen/10 pt-3 text-[11px] leading-relaxed text-linen/60">
           Missed days never become overdue debt.
         </p>
       </div>
@@ -163,6 +164,7 @@ export default function AppShell() {
             )}
 
             <div className="ml-auto flex items-center gap-1.5">
+              <ThemeToggle />
               <Link
                 to="/settings"
                 aria-label="Settings"
@@ -182,7 +184,7 @@ export default function AppShell() {
                 <LogOut className="w-4 h-4" />
               </button>
               <div className="ml-1 flex items-center gap-2 rounded-full border border-sand bg-ivory py-1 pl-1 pr-3">
-                <span className="grid h-7 w-7 place-items-center rounded-full bg-obsidian text-[11px] font-semibold text-parchment">
+                <span className="grid h-7 w-7 place-items-center rounded-full bg-obsidian text-[11px] font-semibold text-linen">
                   {initial}
                 </span>
                 <span className="hidden max-w-[150px] truncate text-xs text-slate md:block">

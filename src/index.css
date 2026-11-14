@@ -3,6 +3,56 @@
 @tailwind utilities;
 
 @layer base {
+  /* Light theme: white cards on a light gray canvas, forest-green accent. */
+  :root {
+    color-scheme: light;
+    --ivory: 244 245 242;
+    --parchment: 255 255 255;
+    --sand: 230 231 227;
+    --ink: 22 26 23;
+    --slate: 94 102 97;
+    --mist: 141 148 143;
+    --obsidian: 18 76 54;
+    --champagne: 31 106 76;
+    --champagne-light: 42 124 91;
+    --sage: 62 125 91;
+    --terracotta: 192 106 52;
+    --bordeaux: 168 58 58;
+    /* Always light: text and hairlines on the dark green cards. */
+    --linen: 247 249 245;
+    --shadow-card: 0 1px 2px rgba(18, 76, 54, 0.04), 0 14px 34px -22px rgba(18, 76, 54, 0.2);
+    /* Chart colours for SVG attributes and Recharts inline styles. */
+    --chart-grid: #e6e7e3;
+    --chart-tick: #8d948f;
+    --chart-surface: #ffffff;
+    --chart-muted: #5e6661;
+    --chart-text: #161a17;
+    --chart-line: #1f6a4c;
+  }
+
+  [data-theme='dark'] {
+    color-scheme: dark;
+    --ivory: 14 20 17;
+    --parchment: 22 30 26;
+    --sand: 42 54 47;
+    --ink: 234 240 235;
+    --slate: 166 178 170;
+    --mist: 122 135 127;
+    --obsidian: 23 53 41;
+    --champagne: 74 170 126;
+    --champagne-light: 90 190 145;
+    --sage: 109 185 138;
+    --terracotta: 214 138 92;
+    --bordeaux: 214 106 106;
+    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.5), 0 14px 34px -18px rgba(0, 0, 0, 0.6);
+    --chart-grid: #2a362f;
+    --chart-tick: #7a877f;
+    --chart-surface: #161e1a;
+    --chart-muted: #a6b2aa;
+    --chart-text: #eaf0eb;
+    --chart-line: #4aaa7e;
+  }
+
   html {
     -webkit-text-size-adjust: 100%;
   }
@@ -13,12 +63,12 @@
 
   /* Focus is always visible (UI_SPEC §8). */
   :focus-visible {
-    outline: 2px solid #1F6A4C;
+    outline: 2px solid rgb(var(--champagne));
     outline-offset: 2px;
   }
 
   ::selection {
-    background: rgba(31, 106, 76, 0.18);
+    background: rgb(var(--champagne) / 0.25);
   }
 
   @media (prefers-reduced-motion: reduce) {

@@ -23,18 +23,18 @@ export default function ShiftGraph({ history }) {
       <div className="h-40 lg:h-[220px]">
         <ResponsiveContainer width="100%" height="100%">
           <LineChart data={history} accessibilityLayer margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
-            <CartesianGrid stroke="#E6E7E3" strokeDasharray="3 3" vertical={false} />
+            <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
             <XAxis
               dataKey="date"
               tickFormatter={(value) => format(fromDay(value), 'MMM d')}
-              tick={{ fill: '#8D948F', fontSize: 11 }}
+              tick={{ fill: 'var(--chart-tick)', fontSize: 11 }}
               interval="preserveStartEnd"
               tickLine={false}
-              axisLine={{ stroke: '#E6E7E3' }}
+              axisLine={{ stroke: 'var(--chart-grid)' }}
             />
             <YAxis
               allowDecimals={false}
-              tick={{ fill: '#8D948F', fontSize: 11 }}
+              tick={{ fill: 'var(--chart-tick)', fontSize: 11 }}
               tickLine={false}
               axisLine={false}
               width={40}
@@ -43,20 +43,20 @@ export default function ShiftGraph({ history }) {
               labelFormatter={(value) => format(fromDay(value), 'MMM d, yyyy')}
               formatter={(value) => [`${value} day${value === 1 ? '' : 's'}`, 'Shift']}
               contentStyle={{
-                background: '#FFFFFF',
-                border: '1px solid #E6E7E3',
+                background: 'var(--chart-surface)',
+                border: '1px solid var(--chart-grid)',
                 borderRadius: 8,
                 fontSize: 12,
               }}
-              labelStyle={{ color: '#5E6661' }}
-              itemStyle={{ color: '#161A17' }}
+              labelStyle={{ color: 'var(--chart-muted)' }}
+              itemStyle={{ color: 'var(--chart-text)' }}
             />
             <Line
               type="monotone"
               dataKey="shift"
-              stroke="#1F6A4C"
+              stroke="var(--chart-line)"
               strokeWidth={2}
-              dot={{ r: 2, fill: '#1F6A4C' }}
+              dot={{ r: 2, fill: 'var(--chart-line)' }}
               activeDot={{ r: 4 }}
             />
           </LineChart>

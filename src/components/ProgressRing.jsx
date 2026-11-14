@@ -5,8 +5,8 @@ export default function ProgressRing({ value, max, size = 96, label, tone = 'lig
   const circumference = 2 * Math.PI * radius;
   const palette =
     tone === 'dark'
-      ? { track: 'rgba(255,255,255,0.18)', stroke: '#8FD6AE', text: 'text-parchment' }
-      : { track: '#E6E7E3', stroke: '#1F6A4C', text: 'text-ink' };
+      ? { track: 'rgba(255,255,255,0.18)', stroke: '#8FD6AE', text: 'text-linen' }
+      : { track: 'rgb(var(--sand))', stroke: 'rgb(var(--champagne))', text: 'text-ink' };
 
   return (
     <div
@@ -18,13 +18,13 @@ export default function ProgressRing({ value, max, size = 96, label, tone = 'lig
       aria-label={label ?? `${value} of ${max} minutes`}
     >
       <svg width={size} height={size} className="-rotate-90" aria-hidden="true">
-        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" stroke={palette.track} strokeWidth="6" />
+        <circle cx={size / 2} cy={size / 2} r={radius} fill="none" style={{ stroke: palette.track }} strokeWidth="6" />
         <circle
           cx={size / 2}
           cy={size / 2}
           r={radius}
           fill="none"
-          stroke={palette.stroke}
+          style={{ stroke: palette.stroke }}
           strokeWidth="6"
           strokeLinecap="round"
           strokeDasharray={circumference}

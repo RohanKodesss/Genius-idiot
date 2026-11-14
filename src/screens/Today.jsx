@@ -195,16 +195,16 @@ export default function Today() {
             <div className="rounded-2xl bg-obsidian p-5 shadow-card">
               <div className="flex items-start justify-between gap-4">
                 <div>
-                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-parchment/50">
+                  <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-linen/50">
                     Today's focus
                   </p>
-                  <p className="mt-3 font-display text-3xl leading-none tabular-nums text-parchment">
+                  <p className="mt-3 font-display text-3xl leading-none tabular-nums text-linen">
                     {totals.minutesDone}
-                    <span className="ml-1 font-sans text-sm text-parchment/50">
+                    <span className="ml-1 font-sans text-sm text-linen/50">
                       / {totals.minutesTotal} min
                     </span>
                   </p>
-                  <p className="mt-2 text-xs text-parchment/50">
+                  <p className="mt-2 text-xs text-linen/50">
                     {totals.goalsTotal === 0
                       ? 'Rest day — nothing due.'
                       : `${totals.goalsDone} of ${totals.goalsTotal} goals complete`}
@@ -221,7 +221,7 @@ export default function Today() {
               {focus && (
                 <Link
                   to={`/goal/${focus.goal.id}`}
-                  className="mt-5 inline-flex items-center gap-2 rounded-xl border border-parchment/15 bg-parchment/5 px-3 py-2 text-xs font-medium text-parchment transition hover:bg-parchment/10"
+                  className="mt-5 inline-flex items-center gap-2 rounded-xl border border-linen/15 bg-linen/5 px-3 py-2 text-xs font-medium text-linen transition hover:bg-linen/10"
                 >
                   Continue {focus.goal.name}
                   <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />

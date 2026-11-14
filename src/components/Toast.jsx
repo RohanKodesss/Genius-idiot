@@ -4,7 +4,7 @@ import { useApp } from '../context/AppContext';
 const tones = {
   error: { style: 'bg-bordeaux text-parchment', icon: AlertTriangle, role: 'alert' },
   success: { style: 'bg-sage text-parchment', icon: Check, role: 'status' },
-  info: { style: 'bg-obsidian text-parchment', icon: Info, role: 'status' },
+  info: { style: 'bg-obsidian text-linen', icon: Info, role: 'status' },
 };
 
 export default function ToastViewport() {
