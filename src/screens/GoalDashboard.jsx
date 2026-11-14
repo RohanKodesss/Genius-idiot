@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import { format } from 'date-fns';
-import { ArrowLeft, Moon } from 'lucide-react';
+import { ArrowLeft, ExternalLink, Moon } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { fromDay } from '../lib/dates';
 import { Badge, Button, Card, EmptyState } from '../components/ui';
@@ -12,6 +12,7 @@ import ShiftGraph from '../components/ShiftGraph';
 import HeatMap from '../components/HeatMap';
 import RoadmapList from '../components/RoadmapList';
 import HealthWarning from '../components/HealthWarning';
+import GoalTimer from '../components/GoalTimer';
 
 export default function GoalDashboard() {
   const { goalId } = useParams();
@@ -28,6 +29,7 @@ export default function GoalDashboard() {
     maxShiftByGoal,
     markRestDay,
     unmarkRestDay,
+    completeTask,
     trimLast,
     notify,
   } = useApp();
@@ -55,6 +57,8 @@ export default function GoalDashboard() {
   const progress = progressByGoal[goal.id] ?? { done: 0, total: 0, pct: 0, eta: today };
   const restToday = (restDaysByGoal[goal.id] ?? []).some((restDay) => restDay.date === today);
   const shift = maxShiftByGoal[goal.id] ?? 0;
+  // Same rule as the dashboard card: only a task projected for today can be timed.
+  const todayTask = projection[0]?.projected === today ? projection[0] : null;
 
   return (
     <div className="grid gap-6">
@@ -88,6 +92,32 @@ export default function GoalDashboard() {
           </div>
         </div>
       </div>
+
+      {todayTask && !restToday && (
+        <Card>
+          <h2 className="font-display text-xl text-ink">Today's task</h2>
+          <p className="mt-2 font-sans text-lg font-semibold text-ink leading-snug">
+            {todayTask.title}
+          </p>
+          {todayTask.link && (
+            <a
+              href={todayTask.link}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-1 inline-flex items-center gap-1 text-sm text-slate hover:text-champagne"
+            >
+              Open resource <ExternalLink className="w-3.5 h-3.5" aria-hidden="true" />
+            </a>
+          )}
+          <div className="mt-4">
+            <GoalTimer
+              goal={goal}
+              task={todayTask}
+              onFinish={(minutes) => completeTask(todayTask.id, minutes)}
+            />
+          </div>
+        </Card>
+      )}
 
       {shift > 14 && !accepted && (
         <HealthWarning
