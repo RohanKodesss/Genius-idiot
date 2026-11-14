@@ -3,19 +3,19 @@ export default {
   theme: {
     extend: {
       colors: {
-        // Dark "charcoal + white" theme. Token names kept from the light spec
-        // so every component switches with this one block.
-        obsidian: '#0A0A0B', // deepest: text on champagne, overlays
-        ink: '#F4F2ED', // primary text (warm white)
-        slate: '#B3B3BB', // secondary text
-        mist: '#8B8B94', // tertiary text
-        ivory: '#121214', // page background
-        parchment: '#1B1B1F', // cards and surfaces
-        sand: '#2E2E35', // borders and subtle fills
-        champagne: { DEFAULT: '#C6A55C', light: '#E8D5A8' },
-        sage: '#9CB88C',
-        terracotta: '#E09A7C',
-        bordeaux: '#E28A96',
+        // "Donezo" palette: white cards on a light gray canvas, deep forest
+        // green accent. Token names stay stable so every component follows.
+        obsidian: '#124C36', // deepest: dark cards, active nav, logo
+        ink: '#161A17', // primary text
+        slate: '#5E6661', // secondary text
+        mist: '#8D948F', // tertiary text
+        ivory: '#F4F5F2', // page canvas
+        parchment: '#FFFFFF', // cards, sidebar, header
+        sand: '#E6E7E3', // borders and subtle fills
+        champagne: { DEFAULT: '#1F6A4C', light: '#2A7C5B' },
+        sage: '#3E7D5B',
+        terracotta: '#C06A34',
+        bordeaux: '#A83A3A',
       },
       fontFamily: {
         display: ['Fraunces', 'Georgia', 'serif'],
@@ -26,7 +26,7 @@ export default {
         '2xl': '1rem',
       },
       boxShadow: {
-        card: '0 1px 2px rgba(0,0,0,0.5), 0 12px 32px rgba(0,0,0,0.35)',
+        card: '0 1px 2px rgba(18,76,54,0.04), 0 14px 34px -22px rgba(18,76,54,0.20)',
       },
     },
   },

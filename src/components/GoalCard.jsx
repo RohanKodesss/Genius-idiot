@@ -85,7 +85,7 @@ export default function GoalCard({ goal, projection, streak, progress, restToday
             className="mt-4 self-start inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs text-slate hover:text-ink border border-transparent hover:border-sand"
           >
             <Moon className="w-3.5 h-3.5" aria-hidden="true" />
-            {restToday ? 'Resting today' : 'Rest day'}
+            {restToday ? 'Resting today' : 'Mark rest day'}
           </button>
         )}
       </div>

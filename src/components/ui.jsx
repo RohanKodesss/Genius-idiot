@@ -4,9 +4,9 @@ import { Loader2 } from 'lucide-react';
 export function Button({ variant = 'primary', className = '', children, ...props }) {
   const styles = {
     primary:
-      'bg-champagne text-obsidian hover:bg-champagne-light active:scale-[0.98]',
+      'bg-champagne text-parchment hover:bg-champagne-light active:scale-[0.98]',
     secondary:
-      'bg-transparent text-ink border border-sand hover:border-ink hover:bg-parchment',
+      'bg-transparent text-ink border border-sand hover:border-ink hover:bg-ivory',
     ghost: 'text-slate text-sm hover:text-ink underline-offset-4 hover:underline',
     danger:
       'bg-transparent text-bordeaux border border-bordeaux/30 hover:bg-bordeaux/5',

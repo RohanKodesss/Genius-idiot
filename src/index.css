@@ -13,12 +13,12 @@
 
   /* Focus is always visible (UI_SPEC §8). */
   :focus-visible {
-    outline: 2px solid #c6a55c;
+    outline: 2px solid #1F6A4C;
     outline-offset: 2px;
   }
 
   ::selection {
-    background: rgba(198, 165, 92, 0.25);
+    background: rgba(31, 106, 76, 0.18);
   }
 
   @media (prefers-reduced-motion: reduce) {

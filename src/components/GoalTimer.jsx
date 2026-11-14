@@ -92,7 +92,7 @@ export default function GoalTimer({ goal, task, onFinish }) {
       <button
         type="button"
         onClick={() => begin(0)}
-        className="inline-flex items-center gap-2 rounded-xl bg-champagne px-4 py-3 sm:py-2.5 font-medium text-obsidian hover:bg-champagne-light active:scale-[0.98] transition"
+        className="inline-flex items-center gap-2 rounded-xl bg-champagne px-4 py-3 sm:py-2.5 font-medium text-parchment hover:bg-champagne-light active:scale-[0.98] transition"
       >
         <Play className="w-4 h-4" aria-hidden="true" />
         Start · {goal.daily_minutes} min
@@ -139,7 +139,7 @@ export default function GoalTimer({ goal, task, onFinish }) {
           <button
             type="button"
             onClick={() => begin(elapsed)}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-champagne px-3 py-1.5 text-sm font-medium text-obsidian hover:bg-champagne-light"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-champagne px-3 py-1.5 text-sm font-medium text-parchment hover:bg-champagne-light"
           >
             <Play className="w-3.5 h-3.5" aria-hidden="true" />
             Resume
