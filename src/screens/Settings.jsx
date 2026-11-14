@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Download, LogOut, Moon, Pencil, RefreshCcw, Trash2 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import { formatDay } from '../lib/dates';
 import { Button, Card, Divider, Input, Select } from '../components/ui';
 import Modal from '../components/Modal';
 
@@ -135,7 +136,7 @@ export default function Settings() {
                   className="flex items-center justify-between gap-3 py-2 text-sm"
                 >
                   <span className="text-ink truncate">{goalName(restDay.goal_id)}</span>
-                  <span className="text-slate tabular-nums text-xs">{restDay.date}</span>
+                  <span className="text-slate text-xs">{formatDay(restDay.date)}</span>
                   <button
                     type="button"
                     onClick={() => unmarkRestDay(restDay.goal_id, restDay.date)}

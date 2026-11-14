@@ -50,6 +50,17 @@ describe('computeProjection', () => {
     expect(new Set(result.map((task) => task.projected)).size).toBe(3);
   });
 
+  it('P0: a rest day pauses the queue — today rest means the next task lands tomorrow', () => {
+    const tasks = [
+      { order: 1, completed_at: null, planned_date: '2026-11-13' },
+      { order: 2, completed_at: null, planned_date: '2026-11-14' },
+    ];
+    const restDays = [{ date: today }, { date: '2026-11-15' }];
+    const result = computeProjection(tasks, today, restDays);
+    expect(result.map((task) => task.projected)).toEqual(['2026-11-14', '2026-11-16']);
+    expect(result[0].shift).toBe(1);
+  });
+
   it('P0: a missed day shifts only its own goal', () => {
     const dsa = [
       { order: 1, completed_at: '2026-11-12T20:00:00', planned_date: '2026-11-12' },

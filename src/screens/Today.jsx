@@ -25,7 +25,7 @@ export default function Today() {
   const doneToday = (goalId) =>
     (tasksByGoal[goalId] ?? []).find((task) => dayOf(task.completed_at) === today) ?? null;
 
-  const allDone = goals.length > 0 && totals.goalsDone === totals.goalsTotal;
+  const allDone = goals.length > 0 && totals.goalsTotal > 0 && totals.goalsDone === totals.goalsTotal;
 
   if (loading) {
     return (
@@ -59,7 +59,9 @@ export default function Today() {
           </p>
           <div className="mt-3 flex flex-wrap items-center gap-2">
             <Badge tone={allDone ? 'sage' : 'neutral'}>
-              {totals.goalsDone} / {totals.goalsTotal} goals
+              {totals.goalsTotal
+                ? `${totals.goalsDone} / ${totals.goalsTotal} goals`
+                : 'Rest day'}
             </Badge>
             {overallStreak.longest > 0 && (
               <Badge tone="neutral">best {overallStreak.longest}d</Badge>

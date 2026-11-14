@@ -19,10 +19,15 @@ describe('computeProgress', () => {
     });
     expect(computeProgress([], today)).toMatchObject({ done: 0, total: 0, pct: 0, eta: today });
   });
+
+  it('skips rest days when estimating the finish date', () => {
+    const tasks = [{ completed_at: null }, { completed_at: null }];
+    expect(computeProgress(tasks, today, ['2026-11-14']).eta).toBe('2026-11-16');
+  });
 });
 
 describe('computeTodayTotals', () => {
-  it('counts a goal once when completed or rested today', () => {
+  it('counts completed goals; a rest day pauses a goal instead of marking it done', () => {
     const goals = [
       { id: 'a', daily_minutes: 60 },
       { id: 'b', daily_minutes: 40 },
@@ -31,10 +36,10 @@ describe('computeTodayTotals', () => {
     const tasks = [{ goal_id: 'a', completed_at: `${today}T09:00:00` }];
     const restDays = [{ goal_id: 'b', date: today }];
     expect(computeTodayTotals(goals, tasks, restDays, today)).toEqual({
-      minutesDone: 100,
-      minutesTotal: 130,
-      goalsDone: 2,
-      goalsTotal: 3,
+      minutesDone: 60,
+      minutesTotal: 90,
+      goalsDone: 1,
+      goalsTotal: 2,
     });
   });
 });

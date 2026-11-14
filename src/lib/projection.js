@@ -24,21 +24,33 @@
 //   - Dates are calendar days: 'YYYY-MM-DD' strings.
 import { addDay, dayOf, diffDay } from './dates';
 
-// One pending task per day per goal: projected = today + index among pending.
-export function computeProjection(tasks, today) {
-  return [...tasks]
+// One pending task per working day per goal. Rest days pause the queue: the
+// first pending task lands on the next day that is not a rest day.
+const restSet = (restDays) =>
+  new Set(restDays.map((restDay) => (typeof restDay === 'string' ? restDay : restDay.date)));
+
+export function computeProjection(tasks, today, restDays = []) {
+  const rest = restSet(restDays);
+  const projection = [];
+  let day = today;
+
+  [...tasks]
     .filter((task) => !task.completed_at)
     .sort((a, b) => a.order - b.order)
-    .map((task, index) => {
-      const projected = addDay(today, index);
-      return { ...task, projected, shift: diffDay(projected, task.planned_date) };
+    .forEach((task) => {
+      while (rest.has(day)) day = addDay(day, 1);
+      projection.push({ ...task, projected: day, shift: diffDay(day, task.planned_date) });
+      day = addDay(day, 1);
     });
+
+  return projection;
 }
 
-export function maxShift(tasks, today) {
-  const projection = computeProjection(tasks, today);
+export function maxShift(tasks, today, restDays = []) {
+  const projection = computeProjection(tasks, today, restDays);
   return projection.length ? Math.max(...projection.map((t) => t.shift)) : 0;
 }
+
 
 // Shift as it stood at the start of each of the last `days` days.
 // A day's shift = how far the first still-pending task had slipped by then.

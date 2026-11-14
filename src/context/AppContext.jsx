@@ -104,9 +104,12 @@ export function AppProvider({ children }) {
   const projectionByGoal = useMemo(
     () =>
       Object.fromEntries(
-        data.goals.map((goal) => [goal.id, computeProjection(tasksByGoal[goal.id] ?? [], today)]),
+        data.goals.map((goal) => [
+          goal.id,
+          computeProjection(tasksByGoal[goal.id] ?? [], today, restDaysByGoal[goal.id] ?? []),
+        ]),
       ),
-    [data.goals, tasksByGoal, today],
+    [data.goals, tasksByGoal, restDaysByGoal, today],
   );
 
   const streaksByGoal = useMemo(
@@ -131,9 +134,12 @@ export function AppProvider({ children }) {
   const progressByGoal = useMemo(
     () =>
       Object.fromEntries(
-        data.goals.map((goal) => [goal.id, computeProgress(tasksByGoal[goal.id] ?? [], today)]),
+        data.goals.map((goal) => [
+          goal.id,
+          computeProgress(tasksByGoal[goal.id] ?? [], today, restDaysByGoal[goal.id] ?? []),
+        ]),
       ),
-    [data.goals, tasksByGoal, today],
+    [data.goals, tasksByGoal, restDaysByGoal, today],
   );
 
   const shiftHistoryByGoal = useMemo(
@@ -147,9 +153,12 @@ export function AppProvider({ children }) {
   const maxShiftByGoal = useMemo(
     () =>
       Object.fromEntries(
-        data.goals.map((goal) => [goal.id, maxShift(tasksByGoal[goal.id] ?? [], today)]),
+        data.goals.map((goal) => [
+          goal.id,
+          maxShift(tasksByGoal[goal.id] ?? [], today, restDaysByGoal[goal.id] ?? []),
+        ]),
       ),
-    [data.goals, tasksByGoal, today],
+    [data.goals, tasksByGoal, restDaysByGoal, today],
   );
 
   const overallStreak = useMemo(
