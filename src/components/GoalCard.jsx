@@ -1,7 +1,7 @@
 import { Link } from 'react-router-dom';
 import { ExternalLink, Moon, RotateCcw } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import CompleteButton from './CompleteButton';
+import GoalTimer from './GoalTimer';
 import MinutesInput from './MinutesInput';
 import StreakBadge from './StreakBadge';
 
@@ -46,15 +46,19 @@ export default function GoalCard({ goal, projection, streak, progress, restToday
                 shifted +{task.shift} day{task.shift === 1 ? '' : 's'} · planned {task.planned_date}
               </p>
             )}
-            <div className="mt-4 flex flex-wrap items-center gap-2">
-              <CompleteButton pressed={false} label={task.title} onClick={() => completeTask(task.id)} />
+            <div className="mt-4 flex flex-col gap-2">
+              <GoalTimer
+                goal={goal}
+                task={task}
+                onFinish={(minutes) => completeTask(task.id, minutes)}
+              />
               <button
                 type="button"
                 onClick={() =>
                   restToday ? unmarkRestDay(goal.id, today) : markRestDay(goal.id, today)
                 }
                 aria-pressed={restToday}
-                className="inline-flex items-center gap-1.5 rounded-xl px-3 py-2.5 text-xs text-slate hover:text-ink border border-transparent hover:border-sand"
+                className="self-start inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs text-slate hover:text-ink border border-transparent hover:border-sand"
               >
                 <Moon className="w-3.5 h-3.5" aria-hidden="true" />
                 {restToday ? 'Resting today' : 'Rest day'}

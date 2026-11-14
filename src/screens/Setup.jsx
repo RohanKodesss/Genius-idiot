@@ -5,6 +5,7 @@ import { useApp } from '../context/AppContext';
 import { Button, Card, Input } from '../components/ui';
 import MarkdownImporter from '../components/MarkdownImporter';
 import TaskCardBuilder from '../components/TaskCardBuilder';
+import QuickImport from '../components/QuickImport';
 
 // Onboarding: create goals, import a roadmap for each, then continue.
 export default function Setup() {
@@ -19,6 +20,18 @@ export default function Setup() {
   const selectedGoal = goals.find((goal) => goal.id === selected) ?? goals[0];
   const taskCount = (goalId) => tasksByGoal[goalId]?.length ?? 0;
   const ready = goals.length > 0 && goals.every((goal) => taskCount(goal.id) > 0);
+
+  const handleImport = async (tasks) => {
+    if (!selectedGoal) return { ok: false };
+    const res = await importRoadmap(selectedGoal.id, tasks);
+    if (res.ok) {
+      notify(
+        `${tasks.length} task${tasks.length === 1 ? '' : 's'} added to ${selectedGoal.name}.`,
+        'success',
+      );
+    }
+    return res;
+  };
 
   const create = async (event) => {
     event.preventDefault();
@@ -72,7 +85,8 @@ export default function Setup() {
           <Card className="mt-6">
             <h2 className="font-display text-xl text-ink">Import a roadmap</h2>
             <p className="mt-1 text-sm text-slate">
-              Pick a goal, paste its Markdown, preview, then import.
+              Pick a goal, then build cards, paste Markdown, or paste any list. Every method uses a
+              start date and one task per day.
             </p>
 
             <div className="mt-4 flex flex-wrap gap-2">
@@ -111,6 +125,7 @@ export default function Setup() {
                   {[
                     { id: 'cards', label: 'Card builder' },
                     { id: 'markdown', label: 'Markdown' },
+                    { id: 'paste', label: 'Quick paste' },
                   ].map((tab) => (
                     <button
                       key={tab.id}
@@ -129,37 +144,28 @@ export default function Setup() {
                   ))}
                 </div>
 
-                {method === 'cards' ? (
+                {method === 'cards' && (
                   <TaskCardBuilder
                     key={`cards-${selectedGoal.id}`}
                     startDay={today}
                     importLabel={`Add to ${selectedGoal.name}`}
-                    onImport={async (tasks) => {
-                      const res = await importRoadmap(selectedGoal.id, tasks);
-                      if (res.ok) {
-                        notify(
-                          `${tasks.length} task${tasks.length === 1 ? '' : 's'} added to ${selectedGoal.name}.`,
-                          'success',
-                        );
-                      }
-                      return res;
-                    }}
+                    onImport={handleImport}
                   />
-                ) : (
+                )}
+                {method === 'markdown' && (
                   <MarkdownImporter
                     key={`md-${selectedGoal.id}`}
                     startDay={today}
                     importLabel={`Import into ${selectedGoal.name}`}
-                    onImport={async (tasks) => {
-                      const res = await importRoadmap(selectedGoal.id, tasks);
-                      if (res.ok) {
-                        notify(
-                          `${tasks.length} task${tasks.length === 1 ? '' : 's'} added to ${selectedGoal.name}.`,
-                          'success',
-                        );
-                      }
-                      return res;
-                    }}
+                    onImport={handleImport}
+                  />
+                )}
+                {method === 'paste' && (
+                  <QuickImport
+                    key={`paste-${selectedGoal.id}`}
+                    startDay={today}
+                    importLabel={`Add to ${selectedGoal.name}`}
+                    onImport={handleImport}
                   />
                 )}
               </div>

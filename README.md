@@ -112,10 +112,12 @@ address is confirmed.
 
 1. **Sign up / log in.** Real Supabase auth, or any credentials in demo mode.
 2. **Set up a goal.** Name it (`DSA`), set daily minutes (`60`), press **Add goal**.
-3. **Add its roadmap** — two ways, same result:
+3. **Add its roadmap** — three ways, same result:
    - **Card builder** (default): set a start date, add cards (title, optional link, optional minutes).
      Card 1 lands on the start date, card 2 the next day, and so on.
-   - **Markdown**: paste a list, preview, import. The start date works the same way.
+   - **Markdown**: paste a strict checklist, preview, import.
+   - **Quick paste**: paste a plain list, a spreadsheet column, or drop a `.txt` / `.csv` file.
+   - Every method uses the same start date, so you can mix them per goal.
 4. Repeat for each goal. The setup gate keeps you on this screen until every goal has at least one task.
 5. Press **Go to today**.
 
@@ -167,6 +169,9 @@ it. The daily load is still one task.
 
 ### 5.5 Completing early, and catch-up
 
+- The **timer** on each Today card counts down the goal's `daily_minutes`. The task is marked done
+  only when it reaches `00:00`; pausing, reloading or leaving the tab keeps the elapsed time, and
+  finishing early from a paused timer logs what you actually spent.
 - Completing a task before its projected day is fine — it counts for the day you completed it.
 - Completing two tasks in one day pulls the whole queue forward by a day.
 - `est_minutes` is display-only in v1: the projection always assumes 1 task = 1 day.
@@ -233,13 +238,45 @@ Rules:
 
 Import is blocked while any line has an error. The start date works exactly like the card builder.
 
+### 6.3 Quick paste (anything)
+
+The forgiving importer. One task per line, and these all work:
+
+```text
+title, link, minutes          ← spreadsheet header row (optional)
+Arrays basics, https://example.com/arrays, 45
+Two pointers                  ← plain title
+- Sliding window | 45         ← bullet + minutes
+1. Binary search              ← numbered list
+- [ ] Recursion               ← pasted checklist
+```
+
+- Delimiters: comma, tab, or `|`. Quoted cells keep their commas: `"Arrays, basics"`.
+- Fields after the title are recognised by shape — a URL is a link, a whole number is minutes —
+  so column order does not matter.
+- A header row (`title,…`) is skipped.
+- You can also **drop a file** (`.txt`, `.md`, `.csv`, `.tsv`) onto the box or use **Choose file**.
+- Errors show their line number and block the import.
+
+### 6.4 Which one should I use?
+
+| Situation | Use |
+|---|---|
+| Hand-writing 5–20 tasks | Card builder |
+| A file you already have in Markdown | Markdown |
+| Copying from Excel, Notion, a syllabus, or a chat | Quick paste |
+
 ---
 
 ## 7. Daily use
 
 | Action | Where | Notes |
 |---|---|---|
-| Complete today's task | Today card → **Complete** | optimistic; no spinner |
+| Start the timer | Today card → **Start · N min** | counts down the goal's `daily_minutes` |
+| Pause / resume | Timer → **Pause** / **Resume** | partial progress survives a reload |
+| Reset the timer | Timer → **Reset** | clears the countdown; the task stays pending |
+| Finish early | Timer → **Finish early** (paused only) | logs the elapsed minutes and completes the task |
+| Task completes | automatically at `00:00` | logs `daily_minutes`; the queue moves forward |
 | Undo a completion | Today card → **Undo** | clears `completed_at` and logged minutes |
 | Log minutes | Today card → minutes + **Log** | optional, display-only |
 | Mark a rest day | Today card / goal page | toggles; protects the streak |
@@ -307,6 +344,8 @@ src/
     streaks.js         streaks (+ frozen decisions)
     markdown.js        roadmap parser
     roadmap.js         card builder → task rows
+    quickImport.js     forgiving CSV / list / file parser
+    timer.js           timer maths (pure)
     heatmap.js         completed-per-day map
     progress.js        progress + today's totals
     repository.js      the ONLY file that talks to Supabase
