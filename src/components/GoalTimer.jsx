@@ -155,7 +155,7 @@ export default function GoalTimer({ goal, task, onFinish }) {
           Reset
         </button>
 
-        {!state.running && elapsed > 0 && (
+        {elapsed > 0 && (
           <button
             type="button"
             onClick={() => {

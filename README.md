@@ -183,7 +183,7 @@ it. The daily load is still one task.
 
 - The **timer** on each Today card counts down the goal's `daily_minutes`. The task is marked done
   only when it reaches `00:00`; pausing, reloading or leaving the tab keeps the elapsed time, and
-  finishing early from a paused timer logs what you actually spent.
+  **Finish early** (running or paused) logs what you actually spent.
 - Completing a task before its projected day is fine — it counts for the day you completed it.
 - Completing two tasks in one day pulls the whole queue forward by a day.
 - `est_minutes` is display-only in v1: the projection always assumes 1 task = 1 day.
@@ -287,7 +287,7 @@ Two pointers                  ← plain title
 | Start the timer | Today card → **Start · N min** | counts down the goal's `daily_minutes` |
 | Pause / resume | Timer → **Pause** / **Resume** | partial progress survives a reload |
 | Reset the timer | Timer → **Reset** | clears the countdown; the task stays pending |
-| Finish early | Timer → **Finish early** (paused only) | logs the elapsed minutes and completes the task |
+| Finish early | Timer → **Finish early** (running or paused) | logs the elapsed minutes and completes the task |
 | Task completes | automatically at `00:00` | logs `daily_minutes`; the queue moves forward |
 | Undo a completion | Today card → **Undo** | clears `completed_at` and logged minutes |
 | Log minutes | Today card → minutes + **Log** | optional, display-only |
