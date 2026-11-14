@@ -1,0 +1,488 @@
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useMemo,
+  useState,
+} from 'react';
+import * as repo from '../lib/repository';
+import { DEMO_MODE } from '../supabaseClient';
+import { addDay, todayOf } from '../lib/dates';
+import { computeProjection, computeShiftHistory, maxShift } from '../lib/projection';
+import { computeOverallStreak, computeStreak } from '../lib/streaks';
+import { buildHeatmap } from '../lib/heatmap';
+import { computeProgress, computeTodayTotals } from '../lib/progress';
+
+const AppContext = createContext(null);
+const EMPTY = { goals: [], tasks: [], restDays: [] };
+
+const uuid = () =>
+  globalThis.crypto?.randomUUID?.() ?? `id-${Math.random().toString(36).slice(2)}`;
+
+function groupBy(rows, key) {
+  return rows.reduce((acc, row) => {
+    (acc[row[key]] ??= []).push(row);
+    return acc;
+  }, {});
+}
+
+export function AppProvider({ children }) {
+  const [authUser, setAuthUser] = useState(undefined); // undefined = unknown
+  const [data, setData] = useState(EMPTY);
+  const [loading, setLoading] = useState(true);
+  const [toasts, setToasts] = useState([]);
+  const [dayTick, setDayTick] = useState(0);
+
+  const notify = useCallback((message, tone = 'info') => {
+    const id = uuid();
+    setToasts((current) => [...current, { id, message, tone }].slice(-3));
+    setTimeout(() => setToasts((current) => current.filter((toast) => toast.id !== id)), 5000);
+  }, []);
+
+  const dismiss = useCallback((id) => {
+    setToasts((current) => current.filter((toast) => toast.id !== id));
+  }, []);
+
+  const reload = useCallback(async () => {
+    const res = await repo.fetchAll();
+    if (!res.ok) {
+      notify(
+        res.code === 'PGRST205'
+          ? 'Database not set up. Run supabase/schema.sql in the Supabase SQL editor.'
+          : 'Could not load your data. Try again.',
+        'error',
+      );
+      setLoading(false);
+      return;
+    }
+    setData(res.data);
+    setLoading(false);
+  }, [notify]);
+
+  // Boot: resolve the session once, then subscribe to auth changes.
+  useEffect(() => {
+    let active = true;
+    (async () => {
+      const res = await repo.getCurrentUser();
+      if (!active) return;
+      setAuthUser(res.ok ? res.data : null);
+      if (res.ok && res.data) await reload();
+      else setLoading(false);
+    })();
+
+    const unsubscribe = repo.onAuthChange(async (event, user) => {
+      if (!active) return;
+      if (event === 'SIGNED_IN' && user) {
+        setAuthUser(user);
+        await reload();
+      }
+      if (event === 'SIGNED_OUT') {
+        setAuthUser(null);
+        setData(EMPTY);
+      }
+    });
+
+    return () => {
+      active = false;
+      unsubscribe?.();
+    };
+  }, [reload]);
+
+  // The midnight problem: projection depends on "today".
+  useEffect(() => {
+    const timer = setInterval(() => setDayTick((tick) => tick + 1), 60_000);
+    return () => clearInterval(timer);
+  }, []);
+
+  const today = useMemo(() => todayOf(new Date()), [dayTick]);
+
+  // ── Derived data (never stored) ──────────────────────────────────────────
+  const tasksByGoal = useMemo(() => groupBy(data.tasks, 'goal_id'), [data.tasks]);
+  const restDaysByGoal = useMemo(() => groupBy(data.restDays, 'goal_id'), [data.restDays]);
+
+  const projectionByGoal = useMemo(
+    () =>
+      Object.fromEntries(
+        data.goals.map((goal) => [goal.id, computeProjection(tasksByGoal[goal.id] ?? [], today)]),
+      ),
+    [data.goals, tasksByGoal, today],
+  );
+
+  const streaksByGoal = useMemo(
+    () =>
+      Object.fromEntries(
+        data.goals.map((goal) => [
+          goal.id,
+          computeStreak(tasksByGoal[goal.id] ?? [], restDaysByGoal[goal.id] ?? [], today),
+        ]),
+      ),
+    [data.goals, tasksByGoal, restDaysByGoal, today],
+  );
+
+  const heatmapByGoal = useMemo(
+    () =>
+      Object.fromEntries(
+        data.goals.map((goal) => [goal.id, buildHeatmap(tasksByGoal[goal.id] ?? [])]),
+      ),
+    [data.goals, tasksByGoal],
+  );
+
+  const progressByGoal = useMemo(
+    () =>
+      Object.fromEntries(
+        data.goals.map((goal) => [goal.id, computeProgress(tasksByGoal[goal.id] ?? [], today)]),
+      ),
+    [data.goals, tasksByGoal, today],
+  );
+
+  const shiftHistoryByGoal = useMemo(
+    () =>
+      Object.fromEntries(
+        data.goals.map((goal) => [goal.id, computeShiftHistory(tasksByGoal[goal.id] ?? [], today)]),
+      ),
+    [data.goals, tasksByGoal, today],
+  );
+
+  const maxShiftByGoal = useMemo(
+    () =>
+      Object.fromEntries(
+        data.goals.map((goal) => [goal.id, maxShift(tasksByGoal[goal.id] ?? [], today)]),
+      ),
+    [data.goals, tasksByGoal, today],
+  );
+
+  const overallStreak = useMemo(
+    () => computeOverallStreak(data.goals, data.tasks, data.restDays, today),
+    [data.goals, data.tasks, data.restDays, today],
+  );
+
+  const totals = useMemo(
+    () => computeTodayTotals(data.goals, data.tasks, data.restDays, today),
+    [data.goals, data.tasks, data.restDays, today],
+  );
+
+  // ── Actions (optimistic + rollback) ──────────────────────────────────────
+  const restoreTask = (task) =>
+    setData((current) => ({
+      ...current,
+      tasks: current.tasks.map((row) => (row.id === task.id ? task : row)),
+    }));
+
+  const completeTask = async (taskId, minutes) => {
+    const original = data.tasks.find((task) => task.id === taskId);
+    if (!original) return;
+    const at = new Date().toISOString();
+
+    setData((current) => ({
+      ...current,
+      tasks: current.tasks.map((task) =>
+        task.id === taskId ? { ...task, completed_at: at, minutes_spent: minutes ?? task.minutes_spent } : task,
+      ),
+    }));
+
+    const res = await repo.completeTask(taskId, at, minutes);
+    if (!res.ok) {
+      restoreTask(original);
+      notify("Couldn't save that task. Try again.", 'error');
+    }
+  };
+
+  const undoTask = async (taskId) => {
+    const original = data.tasks.find((task) => task.id === taskId);
+    if (!original) return;
+
+    setData((current) => ({
+      ...current,
+      tasks: current.tasks.map((task) =>
+        task.id === taskId ? { ...task, completed_at: null, minutes_spent: null } : task,
+      ),
+    }));
+
+    const res = await repo.undoTask(taskId);
+    if (!res.ok) {
+      restoreTask(original);
+      notify("Couldn't undo that. Try again.", 'error');
+    }
+  };
+
+  const addGoal = async ({ name, daily_minutes }) => {
+    const goal = {
+      id: uuid(),
+      user_id: authUser?.id,
+      name: name.trim(),
+      daily_minutes,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData((current) => ({ ...current, goals: [...current.goals, goal] }));
+    const res = await repo.createGoal(goal);
+    if (!res.ok) {
+      setData((current) => ({ ...current, goals: current.goals.filter((g) => g.id !== goal.id) }));
+      notify(
+        res.status === 409 ? `You already have a goal named “${goal.name}”.` : "Couldn't save this goal. Try again.",
+        'error',
+      );
+      return res;
+    }
+    // Real mode returns the inserted row array; demo returns the object.
+    return { ...res, data: goal };
+  };
+
+  const updateGoal = async (goalId, patch) => {
+    const original = data.goals.find((goal) => goal.id === goalId);
+    if (!original) return;
+    setData((current) => ({
+      ...current,
+      goals: current.goals.map((goal) => (goal.id === goalId ? { ...goal, ...patch } : goal)),
+    }));
+    const res = await repo.updateGoal(goalId, patch);
+    if (!res.ok) {
+      setData((current) => ({
+        ...current,
+        goals: current.goals.map((goal) => (goal.id === goalId ? original : goal)),
+      }));
+      notify("Couldn't save this goal. Try again.", 'error');
+    }
+    return res;
+  };
+
+  const deleteGoal = async (goalId) => {
+    const snapshot = data;
+    setData((current) => ({
+      goals: current.goals.filter((goal) => goal.id !== goalId),
+      tasks: current.tasks.filter((task) => task.goal_id !== goalId),
+      restDays: current.restDays.filter((restDay) => restDay.goal_id !== goalId),
+    }));
+    const res = await repo.deleteGoal(goalId);
+    if (!res.ok) {
+      setData(snapshot);
+      notify("Couldn't delete that goal. Try again.", 'error');
+    }
+  };
+
+  const importRoadmap = async (goalId, parsedTasks) => {
+    const existing = tasksByGoal[goalId] ?? [];
+    const baseOrder = existing.reduce((max, task) => Math.max(max, task.order), 0);
+    const baseDay = addDay(today, existing.filter((task) => !task.completed_at).length);
+    const rows = parsedTasks.map((task, index) => ({
+      id: uuid(),
+      goal_id: goalId,
+      order: baseOrder + index + 1,
+      title: task.title,
+      link: task.link ?? null,
+      est_minutes: task.est_minutes ?? null,
+      planned_date: addDay(baseDay, index),
+      completed_at: null,
+      minutes_spent: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    }));
+
+    setData((current) => ({ ...current, tasks: [...current.tasks, ...rows] }));
+    const res = await repo.importTasks(rows);
+    if (!res.ok) {
+      const ids = new Set(rows.map((row) => row.id));
+      setData((current) => ({ ...current, tasks: current.tasks.filter((task) => !ids.has(task.id)) }));
+      notify("Couldn't import that roadmap. Try again.", 'error');
+    }
+    return res;
+  };
+
+  const addTask = async (goalId, { title, link, est_minutes }) => {
+    const existing = tasksByGoal[goalId] ?? [];
+    const order = existing.reduce((max, task) => Math.max(max, task.order), 0) + 1;
+    const pending = existing.filter((task) => !task.completed_at).length;
+    const task = {
+      id: uuid(),
+      goal_id: goalId,
+      order,
+      title: title.trim(),
+      link: link || null,
+      est_minutes: est_minutes || null,
+      planned_date: addDay(today, pending),
+      completed_at: null,
+      minutes_spent: null,
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    setData((current) => ({ ...current, tasks: [...current.tasks, task] }));
+    const res = await repo.createTask(task);
+    if (!res.ok) {
+      setData((current) => ({ ...current, tasks: current.tasks.filter((row) => row.id !== task.id) }));
+      notify("Couldn't add that task. Try again.", 'error');
+    }
+    return res;
+  };
+
+  const updateTask = async (taskId, patch) => {
+    const original = data.tasks.find((task) => task.id === taskId);
+    if (!original) return;
+    setData((current) => ({
+      ...current,
+      tasks: current.tasks.map((task) => (task.id === taskId ? { ...task, ...patch } : task)),
+    }));
+    const res = await repo.updateTask(taskId, patch);
+    if (!res.ok) {
+      restoreTask(original);
+      notify("Couldn't save that task. Try again.", 'error');
+    }
+    return res;
+  };
+
+  const deleteTask = async (taskId) => {
+    const original = data.tasks.find((task) => task.id === taskId);
+    if (!original) return;
+    setData((current) => ({ ...current, tasks: current.tasks.filter((task) => task.id !== taskId) }));
+    const res = await repo.deleteTask(taskId);
+    if (!res.ok) {
+      setData((current) => ({ ...current, tasks: [...current.tasks, original] }));
+      notify("Couldn't delete that task. Try again.", 'error');
+    }
+  };
+
+  const reorderTask = async (taskId, newOrder) => {
+    const original = data.tasks;
+    const task = original.find((row) => row.id === taskId);
+    if (!task) return;
+    const queue = original
+      .filter((row) => row.goal_id === task.goal_id)
+      .sort((a, b) => a.order - b.order);
+    const from = queue.findIndex((row) => row.id === taskId);
+    const to = Math.min(Math.max(newOrder - 1, 0), queue.length - 1);
+    queue.splice(to, 0, ...queue.splice(from, 1));
+    const renumbered = queue.map((row, index) => ({ ...row, order: index + 1 }));
+
+    setData((current) => ({
+      ...current,
+      tasks: current.tasks.map((row) => renumbered.find((r) => r.id === row.id) ?? row),
+    }));
+
+    const res = await repo.reorderTask(taskId, newOrder);
+    if (!res.ok) {
+      setData((current) => ({ ...current, tasks: original }));
+      notify("Couldn't reorder. Try again.", 'error');
+      reload();
+    }
+  };
+
+  const markRestDay = async (goalId, date) => {
+    const restDay = { id: uuid(), goal_id: goalId, date, created_at: new Date().toISOString() };
+    setData((current) => ({ ...current, restDays: [...current.restDays, restDay] }));
+    const res = await repo.markRestDay(goalId, date);
+    if (!res.ok) {
+      setData((current) => ({ ...current, restDays: current.restDays.filter((row) => row.id !== restDay.id) }));
+      notify("Couldn't mark that rest day. Try again.", 'error');
+    }
+  };
+
+  const unmarkRestDay = async (goalId, date) => {
+    const original = data.restDays;
+    setData((current) => ({
+      ...current,
+      restDays: current.restDays.filter((row) => !(row.goal_id === goalId && row.date === date)),
+    }));
+    const res = await repo.unmarkRestDay(goalId, date);
+    if (!res.ok) {
+      setData((current) => ({ ...current, restDays: original }));
+      notify("Couldn't remove that rest day. Try again.", 'error');
+    }
+  };
+
+  // Health warning: trim the last N pending tasks of a goal.
+  const trimLast = async (goalId, count) => {
+    const pending = (tasksByGoal[goalId] ?? [])
+      .filter((task) => !task.completed_at)
+      .sort((a, b) => b.order - a.order)
+      .slice(0, count);
+    if (!pending.length) return;
+
+    const ids = new Set(pending.map((task) => task.id));
+    setData((current) => ({ ...current, tasks: current.tasks.filter((task) => !ids.has(task.id)) }));
+    const results = await Promise.all(pending.map((task) => repo.deleteTask(task.id)));
+    if (results.some((res) => !res.ok)) {
+      notify("Couldn't trim every task. Refresh to see the result.", 'error');
+      reload();
+    } else {
+      notify(`Trimmed ${pending.length} task${pending.length === 1 ? '' : 's'}.`, 'success');
+    }
+  };
+
+  const logIn = async (email, password) => {
+    const res = await repo.logIn(email, password);
+    if (res.ok) {
+      setAuthUser(res.data);
+      await reload();
+    }
+    return res;
+  };
+
+  const signUp = async (email, password) => {
+    const res = await repo.signUp(email, password);
+    if (res.ok && res.data && !res.needsConfirmation) {
+      setAuthUser(res.data);
+      await reload();
+    }
+    return res;
+  };
+
+  const logOut = async () => {
+    await repo.logOut();
+    setAuthUser(null);
+    setData(EMPTY);
+  };
+
+  const resetDemo = async () => {
+    await repo.resetDemo();
+    await reload();
+  };
+
+  const value = {
+    authUser,
+    loading,
+    demoMode: DEMO_MODE,
+    today,
+    goals: data.goals,
+    tasks: data.tasks,
+    restDays: data.restDays,
+    tasksByGoal,
+    restDaysByGoal,
+    projectionByGoal,
+    streaksByGoal,
+    heatmapByGoal,
+    progressByGoal,
+    shiftHistoryByGoal,
+    maxShiftByGoal,
+    overallStreak,
+    totals,
+    toasts,
+    notify,
+    dismiss,
+    reload,
+    logIn,
+    signUp,
+    logOut,
+    resetDemo,
+    completeTask,
+    undoTask,
+    addGoal,
+    updateGoal,
+    deleteGoal,
+    importRoadmap,
+    addTask,
+    updateTask,
+    deleteTask,
+    reorderTask,
+    markRestDay,
+    unmarkRestDay,
+    trimLast,
+  };
+
+  return <AppContext.Provider value={value}>{children}</AppContext.Provider>;
+}
+
+export function useApp() {
+  const context = useContext(AppContext);
+  if (!context) throw new Error('useApp must be used inside AppProvider');
+  return context;
+}

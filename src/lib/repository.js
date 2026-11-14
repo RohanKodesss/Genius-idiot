@@ -1,0 +1,187 @@
+// LAYER 4 — data access. The ONLY file that talks to Supabase.
+// Every function returns:
+//   { ok: true, data }
+//   { ok: false, status, code, message, retryable }
+// An empty array from PATCH is treated as 404 (RLS makes "not owned" invisible).
+import { DEMO_MODE, supabase } from '../supabaseClient';
+import * as local from './localRepository';
+
+const fail = (status, code, message, retryable = false) => ({
+  ok: false,
+  status,
+  code,
+  message,
+  retryable,
+});
+
+const fromError = (error, status = 500) =>
+  fail(status, error?.code ?? null, error?.message ?? 'Something went wrong.', status === 401 || status >= 500);
+
+// GETs may legitimately return []; PATCH must not.
+function unwrap(response, { emptyIsOk = false } = {}) {
+  if (response.error) return fromError(response.error, response.status ?? 500);
+  if (Array.isArray(response.data) && response.data.length === 0 && !emptyIsOk) {
+    return fail(404, 'PGRST116', 'Not found.', false);
+  }
+  return { ok: true, data: response.data };
+}
+
+// ── Auth ────────────────────────────────────────────────────────────────────
+export async function signUp(email, password) {
+  if (DEMO_MODE) return local.signUp(email, password);
+  const { data, error } = await supabase.auth.signUp({ email, password });
+  if (error) return fromError(error, error.status ?? 400);
+  // No session means Supabase wants the email confirmed first.
+  if (!data.session) return { ok: true, data: data.user, needsConfirmation: true };
+  return { ok: true, data: data.user };
+}
+
+export async function logIn(email, password) {
+  if (DEMO_MODE) return local.logIn(email, password);
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error) return fromError(error, error.status ?? 401);
+  return { ok: true, data: data.user };
+}
+
+export async function logOut() {
+  if (DEMO_MODE) return local.logOut();
+  const { error } = await supabase.auth.signOut();
+  if (error) return fromError(error, 500);
+  return { ok: true, data: null };
+}
+
+export async function getCurrentUser() {
+  if (DEMO_MODE) return local.getCurrentUser();
+  const { data, error } = await supabase.auth.getSession();
+  if (error) return fromError(error, 401);
+  return { ok: true, data: data.session?.user ?? null };
+}
+
+export function onAuthChange(callback) {
+  if (DEMO_MODE) return local.onAuthChange(callback);
+  const { data } = supabase.auth.onAuthStateChange((event, session) => {
+    callback(event, session?.user ?? null);
+  });
+  return () => data.subscription.unsubscribe();
+}
+
+// ── Reads ───────────────────────────────────────────────────────────────────
+export async function fetchAll() {
+  if (DEMO_MODE) return local.fetchAll();
+  const [goals, tasks, restDays] = await Promise.all([
+    supabase.from('goals').select('*').order('created_at', { ascending: true }),
+    supabase.from('tasks').select('*').order('goal_id', { ascending: true }).order('order', { ascending: true }),
+    supabase.from('rest_days').select('*').order('goal_id', { ascending: true }).order('date', { ascending: true }),
+  ]);
+  for (const response of [goals, tasks, restDays]) {
+    if (response.error) return fromError(response.error, response.status ?? 500);
+  }
+  return { ok: true, data: { goals: goals.data, tasks: tasks.data, restDays: restDays.data } };
+}
+
+export async function getGoal(goalId) {
+  if (DEMO_MODE) return local.getGoal(goalId);
+  return unwrap(await supabase.from('goals').select('*').eq('id', goalId).single());
+}
+
+export async function getTasksForGoal(goalId) {
+  if (DEMO_MODE) return local.getTasksForGoal(goalId);
+  return unwrap(
+    await supabase.from('tasks').select('*').eq('goal_id', goalId).order('order', { ascending: true }),
+    { emptyIsOk: true },
+  );
+}
+
+export async function getRestDaysForGoal(goalId) {
+  if (DEMO_MODE) return local.getRestDaysForGoal(goalId);
+  return unwrap(
+    await supabase.from('rest_days').select('*').eq('goal_id', goalId).order('date', { ascending: true }),
+    { emptyIsOk: true },
+  );
+}
+
+// ── Goals ───────────────────────────────────────────────────────────────────
+export async function createGoal(goal) {
+  if (DEMO_MODE) return local.createGoal(goal);
+  return unwrap(await supabase.from('goals').insert(goal).select());
+}
+
+export async function updateGoal(goalId, patch) {
+  if (DEMO_MODE) return local.updateGoal(goalId, patch);
+  return unwrap(await supabase.from('goals').update(patch).eq('id', goalId).select());
+}
+
+// Deletes are idempotent: an empty array means it is already gone.
+export async function deleteGoal(goalId) {
+  if (DEMO_MODE) return local.deleteGoal(goalId);
+  return unwrap(await supabase.from('goals').delete().eq('id', goalId).select(), { emptyIsOk: true });
+}
+
+// ── Tasks ───────────────────────────────────────────────────────────────────
+export async function createTask(task) {
+  if (DEMO_MODE) return local.createTask(task);
+  return unwrap(await supabase.from('tasks').insert(task).select());
+}
+
+export async function importTasks(tasks) {
+  if (DEMO_MODE) return local.importTasks(tasks);
+  return unwrap(await supabase.from('tasks').insert(tasks).select());
+}
+
+export async function updateTask(taskId, patch) {
+  if (DEMO_MODE) return local.updateTask(taskId, patch);
+  return unwrap(await supabase.from('tasks').update(patch).eq('id', taskId).select());
+}
+
+export async function completeTask(taskId, at, minutes) {
+  if (DEMO_MODE) return local.completeTask(taskId, at, minutes);
+  const patch = { completed_at: at };
+  if (minutes != null) patch.minutes_spent = minutes;
+  return updateTask(taskId, patch);
+}
+
+export async function undoTask(taskId) {
+  if (DEMO_MODE) return local.undoTask(taskId);
+  return updateTask(taskId, { completed_at: null, minutes_spent: null });
+}
+
+export async function deleteTask(taskId) {
+  if (DEMO_MODE) return local.deleteTask(taskId);
+  return unwrap(await supabase.from('tasks').delete().eq('id', taskId).select(), { emptyIsOk: true });
+}
+
+export async function reorderTask(taskId, newOrder) {
+  if (DEMO_MODE) return local.reorderTask(taskId, newOrder);
+  const { error } = await supabase.rpc('reorder_task', { p_task_id: taskId, p_new_order: newOrder });
+  if (error) return fromError(error, error.code === '42501' ? 403 : 400);
+  return { ok: true, data: null };
+}
+
+// ── Rest days ───────────────────────────────────────────────────────────────
+export async function markRestDay(goalId, date) {
+  if (DEMO_MODE) return local.markRestDay(goalId, date);
+  const response = await supabase
+    .from('rest_days')
+    .insert({ goal_id: goalId, date })
+    .select();
+  // 23505 = already marked; the toggle is idempotent.
+  if (response.error?.code === '23505') return { ok: true, data: null };
+  return unwrap(response);
+}
+
+export async function unmarkRestDay(goalId, date) {
+  if (DEMO_MODE) return local.unmarkRestDay(goalId, date);
+  return unwrap(
+    await supabase.from('rest_days').delete().eq('goal_id', goalId).eq('date', date).select(),
+    { emptyIsOk: true },
+  );
+}
+
+// Demo-mode insurance: wipe the seeded localStorage data and re-seed.
+export async function resetDemo() {
+  if (DEMO_MODE) {
+    local.resetDemoData();
+    return { ok: true, data: null };
+  }
+  return { ok: false, status: 400, code: null, message: 'Only available in demo mode.', retryable: false };
+}
