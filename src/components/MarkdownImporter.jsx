@@ -47,7 +47,7 @@ export default function MarkdownImporter({ onImport, importLabel = 'Import roadm
           }}
           placeholder={EXAMPLE}
           spellCheck={false}
-          className="w-full font-mono text-sm bg-ivory border border-sand rounded-xl p-4 min-h-[200px] text-ink placeholder:text-mist focus:border-champagne focus:ring-2 focus:ring-champagne/20"
+          className="w-full min-h-[200px] rounded-xl border border-sand bg-ivory p-4 font-mono text-base text-ink placeholder:text-mist focus:border-champagne focus:ring-2 focus:ring-champagne/20 sm:text-sm"
         />
         <div className="mt-3 flex flex-wrap items-center gap-2">
           <Button variant="secondary" onClick={preview} disabled={!text.trim()}>

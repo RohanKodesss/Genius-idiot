@@ -71,7 +71,7 @@ export default function TaskCardBuilder({ startDay, onImport, importLabel = 'Add
                   type="button"
                   onClick={() => remove(card.key)}
                   aria-label={`Remove card ${index + 1}`}
-                  className="w-7 h-7 rounded-lg flex items-center justify-center text-slate hover:text-ink hover:bg-parchment"
+                  className="grid h-11 w-11 place-items-center rounded-lg text-slate hover:bg-parchment hover:text-ink lg:h-7 lg:w-7"
                 >
                   <X className="w-3.5 h-3.5" />
                 </button>
@@ -82,14 +82,14 @@ export default function TaskCardBuilder({ startDay, onImport, importLabel = 'Add
                 onChange={(event) => update(card.key, { title: event.target.value })}
                 placeholder="Task title"
                 aria-label={`Task ${index + 1} title`}
-                className="w-full bg-parchment border border-sand rounded-lg px-2.5 py-2 text-sm text-ink placeholder:text-mist focus:border-champagne"
+                className="min-h-[44px] w-full rounded-lg border border-sand bg-parchment px-2.5 py-2 text-base text-ink placeholder:text-mist focus:border-champagne sm:text-sm"
               />
               <input
                 value={card.link}
                 onChange={(event) => update(card.key, { link: event.target.value })}
                 placeholder="https://resource (optional)"
                 aria-label={`Task ${index + 1} link`}
-                className="w-full bg-parchment border border-sand rounded-lg px-2.5 py-2 text-xs text-ink placeholder:text-mist focus:border-champagne"
+                className="min-h-[44px] w-full rounded-lg border border-sand bg-parchment px-2.5 py-2 text-base text-ink placeholder:text-mist focus:border-champagne sm:text-xs"
               />
               <input
                 value={card.est_minutes}
@@ -99,7 +99,7 @@ export default function TaskCardBuilder({ startDay, onImport, importLabel = 'Add
                 inputMode="numeric"
                 placeholder="minutes (optional)"
                 aria-label={`Task ${index + 1} estimate in minutes`}
-                className="w-full bg-parchment border border-sand rounded-lg px-2.5 py-2 text-xs text-ink placeholder:text-mist focus:border-champagne"
+                className="min-h-[44px] w-full rounded-lg border border-sand bg-parchment px-2.5 py-2 text-base text-ink placeholder:text-mist focus:border-champagne sm:text-xs"
               />
 
               {error && <p className="text-xs text-bordeaux">{error.message}</p>}

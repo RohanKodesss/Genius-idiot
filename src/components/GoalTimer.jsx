@@ -130,7 +130,7 @@ export default function GoalTimer({ goal, task, onFinish }) {
           <button
             type="button"
             onClick={pause}
-            className="inline-flex items-center gap-1.5 rounded-lg border border-sand px-3 py-1.5 text-sm text-ink hover:border-ink"
+            className="inline-flex items-center gap-1.5 rounded-lg border border-sand px-3 py-2.5 text-sm text-ink hover:border-ink sm:py-1.5"
           >
             <Pause className="w-3.5 h-3.5" aria-hidden="true" />
             Pause
@@ -139,7 +139,7 @@ export default function GoalTimer({ goal, task, onFinish }) {
           <button
             type="button"
             onClick={() => begin(elapsed)}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-champagne px-3 py-1.5 text-sm font-medium text-parchment hover:bg-champagne-light"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-champagne px-3 py-2.5 text-sm font-medium text-parchment hover:bg-champagne-light sm:py-1.5"
           >
             <Play className="w-3.5 h-3.5" aria-hidden="true" />
             Resume
@@ -149,7 +149,7 @@ export default function GoalTimer({ goal, task, onFinish }) {
         <button
           type="button"
           onClick={reset}
-          className="inline-flex items-center gap-1.5 text-xs text-slate hover:text-ink underline underline-offset-4"
+          className="inline-flex items-center gap-1.5 px-1 py-2 text-xs text-slate hover:text-ink underline underline-offset-4"
         >
           <RotateCcw className="w-3 h-3" aria-hidden="true" />
           Reset
@@ -164,7 +164,7 @@ export default function GoalTimer({ goal, task, onFinish }) {
               setState(null);
               onFinish(minutes);
             }}
-            className="ml-auto text-xs text-slate hover:text-ink underline underline-offset-4"
+            className="ml-auto py-2 text-xs text-slate hover:text-ink underline underline-offset-4"
           >
             Finish early
           </button>

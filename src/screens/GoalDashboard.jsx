@@ -15,12 +15,14 @@ import GoalTimer from '../components/GoalTimer';
 
 function MiniStat({ icon: Icon, label, value, hint }) {
   return (
-    <div className="rounded-2xl border border-sand bg-parchment p-4 shadow-card">
+    <div className="min-w-0 rounded-2xl border border-sand bg-parchment p-4 shadow-card">
       <div className="flex items-center gap-2 text-mist">
-        <Icon className="h-3.5 w-3.5" aria-hidden="true" />
+        <Icon className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
         <span className="text-[10px] font-semibold uppercase tracking-[0.14em]">{label}</span>
       </div>
-      <p className="mt-2 font-display text-2xl leading-none tabular-nums text-ink">{value}</p>
+      <p className="mt-2 break-words font-display text-2xl leading-none tabular-nums text-ink">
+        {value}
+      </p>
       {hint && <p className="mt-1 text-[11px] text-mist">{hint}</p>}
     </div>
   );
@@ -73,7 +75,7 @@ export default function GoalDashboard() {
   const todayTask = projection[0]?.projected === today ? projection[0] : null;
 
   return (
-    <div className="grid gap-6">
+    <div className="grid min-w-0 gap-6">
       <div>
         <Link
           to="/"
@@ -84,9 +86,9 @@ export default function GoalDashboard() {
         </Link>
 
         <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
-          <div>
+          <div className="min-w-0">
             <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-mist">Goal</p>
-            <h1 className="mt-1 font-display text-4xl font-medium tracking-tight text-ink">
+            <h1 className="mt-1 break-words font-display text-3xl font-medium tracking-tight text-ink sm:text-4xl">
               {goal.name}
             </h1>
             <p className="mt-2 text-sm text-slate tabular-nums">
@@ -110,7 +112,7 @@ export default function GoalDashboard() {
         </div>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 lg:grid-cols-4">
+      <div className="grid grid-cols-2 gap-3 sm:gap-4 lg:grid-cols-4">
         <MiniStat
           icon={Flame}
           label="Streak"
@@ -151,15 +153,16 @@ export default function GoalDashboard() {
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-mist">
             Today's task
           </p>
-          <p className="mt-2 font-display text-2xl text-ink">{todayTask.title}</p>
+          <p className="mt-2 break-words font-display text-2xl text-ink">{todayTask.title}</p>
           {todayTask.link && (
             <a
               href={todayTask.link}
               target="_blank"
               rel="noreferrer"
-              className="mt-1 inline-flex items-center gap-1 text-sm text-slate hover:text-champagne"
+              className="mt-1 inline-flex max-w-full items-center gap-1 text-sm text-slate hover:text-champagne"
             >
-              Open resource <ExternalLink className="h-3.5 w-3.5" aria-hidden="true" />
+              <span className="min-w-0 break-words">Open resource</span>
+              <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
             </a>
           )}
           <div className="mt-4">
@@ -185,8 +188,8 @@ export default function GoalDashboard() {
         />
       )}
 
-      <div className="grid gap-6 lg:grid-cols-3">
-        <div className="grid content-start gap-6 lg:col-span-2">
+      <div className="grid min-w-0 gap-6 lg:grid-cols-3">
+        <div className="grid min-w-0 content-start gap-6 lg:col-span-2">
           <Card>
             <h2 className="font-display text-xl text-ink">Next 7 tasks</h2>
             <p className="mt-1 mb-4 text-sm text-slate">
@@ -209,7 +212,7 @@ export default function GoalDashboard() {
           </Card>
         </div>
 
-        <div className="grid content-start gap-6">
+        <div className="grid min-w-0 content-start gap-6">
           <Card>
             <h2 className="font-display text-xl text-ink">Shift over time</h2>
             <p className="mt-1 mb-4 text-sm text-slate">How far the queue had slipped, day by day.</p>

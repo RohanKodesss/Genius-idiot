@@ -1,5 +1,5 @@
-import { useState } from 'react';
-import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
+import { useEffect, useRef, useState } from 'react';
+import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   CalendarDays,
   Flame,
@@ -14,6 +14,7 @@ import {
 import { useApp } from '../context/AppContext';
 import { formatDay } from '../lib/dates';
 import ThemeToggle from './ThemeToggle';
+import useFocusTrap from './useFocusTrap';
 
 function MenuItem({ to, icon: Icon, label, onNavigate, end = false }) {
   return (
@@ -22,14 +23,14 @@ function MenuItem({ to, icon: Icon, label, onNavigate, end = false }) {
       end={end}
       onClick={onNavigate}
       className={({ isActive }) =>
-        `flex items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
+        `flex min-h-[44px] items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium transition ${
           isActive
             ? 'bg-obsidian text-linen shadow-card'
             : 'text-slate hover:bg-ivory hover:text-ink'
         }`
       }
     >
-      <Icon className="w-4 h-4" aria-hidden="true" />
+      <Icon className="w-4 h-4 shrink-0" aria-hidden="true" />
       {label}
     </NavLink>
   );
@@ -41,7 +42,7 @@ function GoalNavItem({ goal, streak, onNavigate }) {
       to={`/goal/${goal.id}`}
       onClick={onNavigate}
       className={({ isActive }) =>
-        `flex items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm transition ${
+        `flex min-h-[44px] items-center gap-2.5 rounded-xl px-2.5 py-2 text-sm transition ${
           isActive ? 'bg-ivory font-medium text-ink' : 'text-slate hover:bg-ivory hover:text-ink'
         }`
       }
@@ -49,7 +50,7 @@ function GoalNavItem({ goal, streak, onNavigate }) {
       <span className="grid h-6 w-6 shrink-0 place-items-center rounded-lg border border-sand bg-parchment text-[10px] font-semibold uppercase text-champagne">
         {goal.name.slice(0, 2)}
       </span>
-      <span className="truncate">{goal.name}</span>
+      <span className="min-w-0 truncate">{goal.name}</span>
       {streak?.current > 0 && (
         <span className="ml-auto inline-flex shrink-0 items-center gap-0.5 text-xs tabular-nums text-champagne">
           <Flame className="w-3 h-3" aria-hidden="true" />
@@ -60,11 +61,15 @@ function GoalNavItem({ goal, streak, onNavigate }) {
   );
 }
 
-function SidePanel({ onNavigate }) {
+function SidePanel({ onNavigate, compact = false }) {
   const { goals, streaksByGoal, overallStreak } = useApp();
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-6">
+    <div
+      className={`flex flex-col ${
+        compact ? 'min-h-full gap-4' : 'h-full min-h-0 gap-6'
+      }`}
+    >
       <Link to="/" onClick={onNavigate} className="flex items-center gap-3">
         <span className="grid h-10 w-10 place-items-center rounded-2xl bg-obsidian font-display text-lg text-linen">
           G
@@ -87,11 +92,11 @@ function SidePanel({ onNavigate }) {
         </div>
       </nav>
 
-      <nav aria-label="Goals" className="flex min-h-0 flex-1 flex-col">
+      <nav aria-label="Goals" className={compact ? '' : 'flex min-h-0 flex-1 flex-col'}>
         <p className="px-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-mist">
           Your goals
         </p>
-        <div className="mt-2 grid gap-1 overflow-y-auto pr-0.5">
+        <div className={compact ? 'mt-2 grid gap-1' : 'mt-2 grid gap-1 overflow-y-auto pr-0.5'}>
           {goals.length === 0 ? (
             <p className="px-2.5 py-2 text-sm text-mist">No goals yet.</p>
           ) : (
@@ -107,7 +112,7 @@ function SidePanel({ onNavigate }) {
         </div>
       </nav>
 
-      <div className="mt-auto rounded-2xl bg-obsidian p-4 shadow-card">
+      <div className={`rounded-2xl bg-obsidian p-4 shadow-card ${compact ? '' : 'mt-auto'}`}>
         <div className="flex items-center justify-between">
           <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-linen/50">
             Overall streak
@@ -132,45 +137,66 @@ function SidePanel({ onNavigate }) {
 export default function AppShell() {
   const { authUser, demoMode, logOut, today } = useApp();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const drawerRef = useRef(null);
   const navigate = useNavigate();
+  const { pathname } = useLocation();
   const close = () => setDrawerOpen(false);
   const initial = authUser?.email?.[0]?.toUpperCase() ?? 'G';
 
+  // A route change (including browser back) always leaves the drawer closed.
+  useEffect(() => {
+    setDrawerOpen(false);
+  }, [pathname]);
+
+  // Crossing into the desktop layout also closes it, so scroll is not left locked.
+  useEffect(() => {
+    const desktop = window.matchMedia('(min-width: 1024px)');
+    const onChange = (event) => {
+      if (event.matches) setDrawerOpen(false);
+    };
+    desktop.addEventListener('change', onChange);
+    return () => desktop.removeEventListener('change', onChange);
+  }, []);
+
+  useFocusTrap(drawerOpen, drawerRef, close);
+
   return (
     <div className="min-h-screen bg-parchment">
-      <div className="flex min-h-screen w-full flex-col bg-parchment sm:flex-row">
+      <div className="mx-auto flex min-h-screen w-full max-w-[1800px] flex-col bg-parchment sm:flex-row">
         <aside className="hidden w-64 shrink-0 flex-col border-r border-sand bg-parchment p-5 lg:flex xl:w-[272px]">
           <SidePanel />
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="flex items-center gap-3 border-b border-sand bg-parchment px-4 py-3 lg:px-8">
+          <header className="flex items-center gap-2 border-b border-sand bg-parchment px-4 py-3 sm:gap-3 sm:px-6 lg:px-8">
             <button
               type="button"
               onClick={() => setDrawerOpen(true)}
               aria-label="Open menu"
-              className="grid h-9 w-9 place-items-center rounded-xl border border-transparent text-slate hover:border-sand hover:bg-ivory hover:text-ink lg:hidden"
+              aria-expanded={drawerOpen}
+              aria-controls="mobile-menu"
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-xl border border-transparent text-slate hover:border-sand hover:bg-ivory hover:text-ink lg:hidden"
             >
               <Menu className="w-5 h-5" />
             </button>
 
-            <div className="hidden items-center gap-2 rounded-xl border border-sand bg-ivory px-3 py-2 sm:flex">
-              <CalendarDays className="h-4 w-4 text-champagne" aria-hidden="true" />
-              <span className="text-[13px] font-medium text-slate">{formatDay(today)}</span>
+            <div className="hidden min-w-0 items-center gap-2 rounded-xl border border-sand bg-ivory px-3 py-2 md:flex">
+              <CalendarDays className="h-4 w-4 shrink-0 text-champagne" aria-hidden="true" />
+              <span className="truncate text-[13px] font-medium text-slate">{formatDay(today)}</span>
             </div>
 
             {demoMode && (
-              <span className="rounded-full border border-champagne/40 bg-champagne/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-champagne">
+              <span className="shrink-0 rounded-full border border-champagne/40 bg-champagne/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-champagne">
                 Demo
               </span>
             )}
 
-            <div className="ml-auto flex items-center gap-1.5">
+            <div className="ml-auto flex items-center gap-1 sm:gap-1.5">
               <ThemeToggle />
               <Link
                 to="/settings"
                 aria-label="Settings"
-                className="grid h-9 w-9 place-items-center rounded-xl border border-transparent text-slate hover:border-sand hover:bg-ivory hover:text-ink"
+                className="hidden h-9 w-9 place-items-center rounded-xl border border-transparent text-slate hover:border-sand hover:bg-ivory hover:text-ink sm:grid"
               >
                 <Settings className="w-4 h-4" />
               </Link>
@@ -181,11 +207,11 @@ export default function AppShell() {
                   navigate('/login');
                 }}
                 aria-label="Log out"
-                className="grid h-9 w-9 place-items-center rounded-xl border border-transparent text-slate hover:border-sand hover:bg-ivory hover:text-ink"
+                className="hidden h-9 w-9 place-items-center rounded-xl border border-transparent text-slate hover:border-sand hover:bg-ivory hover:text-ink sm:grid"
               >
                 <LogOut className="w-4 h-4" />
               </button>
-              <div className="ml-1 flex items-center gap-2 rounded-full border border-sand bg-ivory py-1 pl-1 pr-3">
+              <div className="ml-1 hidden items-center gap-2 rounded-full border border-sand bg-ivory py-1 pl-1 pr-3 sm:flex">
                 <span className="grid h-7 w-7 place-items-center rounded-full bg-obsidian text-[11px] font-semibold text-linen">
                   {initial}
                 </span>
@@ -196,8 +222,8 @@ export default function AppShell() {
             </div>
           </header>
 
-          <main className="flex-1 bg-ivory">
-            <div className="w-full px-4 py-6 lg:px-8 lg:py-8">
+          <main className="min-w-0 flex-1 bg-ivory">
+            <div className="mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
               <Outlet />
             </div>
           </main>
@@ -206,20 +232,27 @@ export default function AppShell() {
 
       {drawerOpen && (
         <div className="fixed inset-0 z-40 lg:hidden">
-          <div className="absolute inset-0 bg-obsidian/40" onClick={close} />
-          <div className="absolute inset-y-0 left-0 w-4/5 max-w-xs border-r border-sand bg-parchment p-5">
-            <div className="mb-4 flex items-center justify-end">
+          <div className="absolute inset-0 bg-obsidian/40 backdrop-blur-sm" onClick={close} />
+          <div
+            id="mobile-menu"
+            ref={drawerRef}
+            role="dialog"
+            aria-modal="true"
+            aria-label="Main menu"
+            className="absolute inset-y-0 left-0 flex w-4/5 max-w-xs flex-col overflow-y-auto border-r border-sand bg-parchment p-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] shadow-card"
+          >
+            <div className="mb-4 flex shrink-0 items-center justify-end">
               <button
                 type="button"
                 onClick={close}
                 aria-label="Close menu"
-                className="grid h-9 w-9 place-items-center rounded-xl border border-transparent text-slate hover:border-sand hover:bg-ivory hover:text-ink"
+                className="grid h-11 w-11 place-items-center rounded-xl border border-transparent text-slate hover:border-sand hover:bg-ivory hover:text-ink"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
-            <div className="h-[calc(100vh-5.5rem)]">
-              <SidePanel onNavigate={close} />
+            <div className="min-h-0 flex-1 overflow-y-auto">
+              <SidePanel onNavigate={close} compact />
             </div>
           </div>
         </div>

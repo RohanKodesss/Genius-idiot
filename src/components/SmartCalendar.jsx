@@ -16,15 +16,15 @@ export default function SmartCalendar({ projection, today }) {
           return (
             <li
               key={task.id}
-              className={`flex flex-wrap items-baseline justify-between gap-x-3 rounded-lg px-3 py-2 ${
+              className={`flex flex-wrap items-baseline justify-between gap-x-3 gap-y-1 rounded-lg px-3 py-2 ${
                 isToday ? 'bg-champagne/5' : 'bg-parchment'
               } ${shifted ? 'border border-champagne' : 'border border-sand'}`}
             >
-              <p className="truncate text-sm text-ink">
+              <p className="min-w-0 basis-full break-words text-sm text-ink sm:flex-1 sm:basis-auto">
                 {isToday && <span className="text-xs text-champagne mr-2">Today</span>}
                 {task.title}
               </p>
-              <p className="text-xs shrink-0">
+              <p className="shrink-0 text-xs">
                 {shifted ? (
                   <span className="text-slate">
                     was {formatDay(task.planned_date)} →{' '}

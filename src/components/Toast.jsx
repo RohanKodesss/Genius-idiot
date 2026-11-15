@@ -12,7 +12,7 @@ export default function ToastViewport() {
   if (!toasts.length) return null;
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 flex flex-col gap-2">
+    <div className="fixed inset-x-4 bottom-4 z-50 flex flex-col items-stretch gap-2 sm:inset-x-auto sm:bottom-6 sm:right-6 sm:items-end">
       {toasts.map((toast) => {
         const tone = tones[toast.tone] ?? tones.info;
         const Icon = tone.icon;
@@ -21,13 +21,14 @@ export default function ToastViewport() {
             key={toast.id}
             role={tone.role}
             onClick={() => dismiss(toast.id)}
-            className={`${tone.style} rounded-xl px-4 py-3 shadow-card flex items-start gap-3 min-w-[280px] max-w-sm cursor-pointer`}
+            className={`${tone.style} flex w-full max-w-sm cursor-pointer items-start gap-3 rounded-xl px-4 py-3 shadow-card sm:min-w-[280px]`}
           >
             <Icon className="w-4 h-4 mt-0.5 shrink-0" aria-hidden="true" />
-            <p className="text-sm flex-1">{toast.message}</p>
+            <p className="min-w-0 flex-1 break-words text-sm">{toast.message}</p>
             <button
               type="button"
               aria-label="Dismiss"
+              className="-mr-1 grid h-8 w-8 shrink-0 place-items-center rounded-lg hover:bg-linen/10"
               onClick={(event) => {
                 event.stopPropagation();
                 dismiss(toast.id);

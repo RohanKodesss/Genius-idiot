@@ -53,11 +53,11 @@ export default function Setup() {
   };
 
   return (
-    <main className="min-h-screen bg-ivory px-4 py-10 lg:py-14">
-      <div className="max-w-3xl mx-auto">
+    <main className="min-h-[100dvh] bg-ivory px-4 py-8 sm:px-6 sm:py-10 lg:py-14">
+      <div className="mx-auto max-w-3xl">
         <div className="flex items-start justify-between gap-3">
-          <p className="font-display text-2xl text-ink tracking-tight">GENIUS IDIOT</p>
-          <div className="flex items-center gap-1">
+          <p className="min-w-0 font-display text-2xl text-ink tracking-tight">GENIUS IDIOT</p>
+          <div className="flex shrink-0 items-center gap-1">
             <ThemeToggle />
             <button
               type="button"
@@ -75,7 +75,7 @@ export default function Setup() {
           <HelpCircle className="w-3.5 h-3.5" aria-hidden="true" />
           New here? See how it works
         </Link>
-        <h1 className="mt-6 font-display text-3xl text-ink">Set up your library</h1>
+        <h1 className="mt-6 font-display text-2xl text-ink sm:text-3xl">Set up your library</h1>
         <p className="mt-2 text-sm text-slate max-w-xl">
           One goal, one queue. Create a goal and import its roadmap — one task per day, no
           deadlines. You can add more goals later.
@@ -125,15 +125,15 @@ export default function Setup() {
                     type="button"
                     onClick={() => setSelected(goal.id)}
                     aria-pressed={active}
-                    className={`inline-flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm border transition ${
+                    className={`inline-flex min-h-[44px] max-w-full items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition ${
                       active
                         ? 'bg-sand text-ink border-sand'
                         : 'bg-ivory text-ink border-sand hover:border-ink'
                     }`}
                   >
-                    {done && <CheckCircle2 className="w-3.5 h-3.5 text-sage" aria-hidden="true" />}
-                    {goal.name}
-                    <span className="text-mist">
+                    {done && <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-sage" aria-hidden="true" />}
+                    <span className="min-w-0 break-words">{goal.name}</span>
+                    <span className="shrink-0 text-mist">
                       {taskCount(goal.id)}
                     </span>
                   </button>
@@ -146,7 +146,7 @@ export default function Setup() {
                 <div
                   role="tablist"
                   aria-label="Roadmap entry method"
-                  className="mb-5 inline-flex gap-1 rounded-xl border border-sand bg-ivory p-1"
+                  className="mb-5 grid w-full grid-cols-3 gap-1 rounded-xl border border-sand bg-ivory p-1 sm:inline-flex sm:w-auto"
                 >
                   {[
                     { id: 'cards', label: 'Card builder' },
@@ -159,7 +159,7 @@ export default function Setup() {
                       type="button"
                       aria-selected={method === tab.id}
                       onClick={() => setMethod(tab.id)}
-                      className={`rounded-lg px-3 py-1.5 text-sm transition ${
+                      className={`min-h-[44px] whitespace-nowrap rounded-lg px-1 py-1.5 text-[11px] transition lg:min-h-0 sm:px-3 sm:text-sm ${
                         method === tab.id
                           ? 'bg-sand text-ink'
                           : 'text-slate hover:text-ink'
@@ -199,13 +199,13 @@ export default function Setup() {
           </Card>
         )}
 
-        <div className="mt-8 flex flex-wrap items-center justify-between gap-3">
+        <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
           <p className="text-xs text-mist">
             {ready
               ? 'Every goal has a roadmap. You are ready.'
               : 'Every goal needs at least one task before you continue.'}
           </p>
-          <Button disabled={!ready} onClick={() => navigate('/')}>
+          <Button className="w-full sm:w-auto" disabled={!ready} onClick={() => navigate('/')}>
             Go to today
           </Button>
         </div>

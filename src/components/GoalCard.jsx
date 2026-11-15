@@ -17,18 +17,20 @@ export default function GoalCard({ goal, projection, streak, progress, restToday
   return (
     <section
       aria-label={goal.name}
-      className={`bg-parchment rounded-2xl p-5 border shadow-card flex flex-col ${
+      className={`bg-parchment rounded-2xl p-4 sm:p-5 border shadow-card flex flex-col ${
         todayTask ? 'border-sand' : 'border-sage/30 bg-sage/5'
       }`}
     >
       <header className="flex items-start justify-between gap-3">
         <Link
           to={`/goal/${goal.id}`}
-          className="font-sans text-lg font-semibold text-ink leading-snug hover:text-champagne"
+          className="min-w-0 break-words font-sans text-lg font-semibold text-ink leading-snug hover:text-champagne"
         >
           {goal.name}
         </Link>
-        <StreakBadge days={streak.current} />
+        <div className="shrink-0">
+          <StreakBadge days={streak.current} />
+        </div>
       </header>
 
       <div className="mt-4 flex-1">
@@ -43,7 +45,7 @@ export default function GoalCard({ goal, projection, streak, progress, restToday
           </>
         ) : todayTask ? (
           <>
-            <p className="font-sans text-lg font-semibold text-ink leading-snug">
+            <p className="break-words font-sans text-lg font-semibold text-ink leading-snug">
               {todayTask.title}
             </p>
             {todayTask.link && (
@@ -88,7 +90,7 @@ export default function GoalCard({ goal, projection, streak, progress, restToday
               restToday ? unmarkRestDay(goal.id, today) : markRestDay(goal.id, today)
             }
             aria-pressed={restToday}
-            className="mt-4 self-start inline-flex items-center gap-1.5 rounded-xl px-3 py-2 text-xs text-slate hover:text-ink border border-transparent hover:border-sand"
+            className="mt-4 inline-flex min-h-[44px] items-center gap-1.5 self-start rounded-xl border border-transparent px-3 py-2 text-xs text-slate hover:border-sand hover:text-ink"
           >
             <Moon className="w-3.5 h-3.5" aria-hidden="true" />
             {restToday ? 'Resting today' : 'Mark rest day'}
@@ -98,7 +100,7 @@ export default function GoalCard({ goal, projection, streak, progress, restToday
 
       {doneToday && (
         <div className="mt-4 rounded-xl bg-ivory border border-sand px-3 py-2">
-          <p className="text-xs text-slate">
+          <p className="text-xs text-slate break-words">
             Done today · {doneToday.title}
             {doneToday.minutes_spent != null && (
               <span className="text-mist tabular-nums"> · {doneToday.minutes_spent} min</span>

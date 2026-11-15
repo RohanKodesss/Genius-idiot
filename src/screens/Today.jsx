@@ -89,7 +89,9 @@ export default function Today() {
           <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-mist">
             Your day
           </p>
-          <h1 className="mt-2 font-display text-4xl font-medium tracking-tight text-ink">Today</h1>
+          <h1 className="mt-2 font-display text-3xl font-medium tracking-tight text-ink sm:text-4xl">
+            Today
+          </h1>
           <p className="mt-2 text-sm text-slate">
             {format(fromDay(today), 'EEEE, MMMM d')} · No overdue debt, ever.
           </p>
@@ -152,7 +154,7 @@ export default function Today() {
         </div>
       ) : (
         <div className="mt-6 grid gap-6 lg:grid-cols-3">
-          <section className="lg:col-span-2">
+          <section className="min-w-0 lg:col-span-2">
             <div className="flex items-end justify-between gap-3">
               <div>
                 <h2 className="font-display text-2xl text-ink">Today's queue</h2>
@@ -160,7 +162,7 @@ export default function Today() {
                   One task per goal. Finish it and the next one moves up.
                 </p>
               </div>
-              <span className="hidden rounded-full border border-sand bg-parchment px-3 py-1 text-xs text-slate sm:block">
+              <span className="hidden shrink-0 rounded-full border border-sand bg-parchment px-3 py-1 text-xs text-slate sm:block">
                 {goals.length} goal{goals.length === 1 ? '' : 's'}
               </span>
             </div>
@@ -174,7 +176,7 @@ export default function Today() {
               </div>
             )}
 
-            <div className="mt-4 grid gap-4 sm:grid-cols-2">
+            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
               {goals.map((goal) => (
                 <GoalCard
                   key={goal.id}
@@ -191,10 +193,10 @@ export default function Today() {
             </div>
           </section>
 
-          <aside className="grid content-start gap-4">
+          <aside className="grid min-w-0 content-start gap-4">
             <div className="rounded-2xl bg-obsidian p-5 shadow-card">
               <div className="flex items-start justify-between gap-4">
-                <div>
+                <div className="min-w-0">
                   <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-linen/50">
                     Today's focus
                   </p>
@@ -210,21 +212,23 @@ export default function Today() {
                       : `${totals.goalsDone} of ${totals.goalsTotal} goals complete`}
                   </p>
                 </div>
-                <ProgressRing
-                  value={totals.minutesDone}
-                  max={totals.minutesTotal || 1}
-                  size={72}
-                  tone="dark"
-                  label="Today's minutes"
-                />
+                <div className="shrink-0">
+                  <ProgressRing
+                    value={totals.minutesDone}
+                    max={totals.minutesTotal || 1}
+                    size={72}
+                    tone="dark"
+                    label="Today's minutes"
+                  />
+                </div>
               </div>
               {focus && (
                 <Link
                   to={`/goal/${focus.goal.id}`}
-                  className="mt-5 inline-flex items-center gap-2 rounded-xl border border-linen/15 bg-linen/5 px-3 py-2 text-xs font-medium text-linen transition hover:bg-linen/10"
+                  className="mt-5 inline-flex max-w-full items-center gap-2 rounded-xl border border-linen/15 bg-linen/5 px-3 py-2 text-xs font-medium text-linen transition hover:bg-linen/10 max-lg:min-h-[44px]"
                 >
-                  Continue {focus.goal.name}
-                  <ArrowUpRight className="h-3.5 w-3.5" aria-hidden="true" />
+                  <span className="min-w-0 break-words">Continue {focus.goal.name}</span>
+                  <ArrowUpRight className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
                 </Link>
               )}
             </div>

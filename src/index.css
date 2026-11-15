@@ -59,6 +59,17 @@
 
   body {
     @apply bg-ivory text-ink font-sans antialiased;
+    overflow-wrap: break-word;
+  }
+
+  #root {
+    min-height: 100dvh;
+  }
+
+  img,
+  video {
+    max-width: 100%;
+    height: auto;
   }
 
   /* Focus is always visible (UI_SPEC §8). */
@@ -80,5 +91,17 @@
       transition-duration: 0.01ms !important;
       scroll-behavior: auto !important;
     }
+  }
+}
+
+/* Only hide row actions on real hover devices; touch screens keep them visible. */
+@media (hover: hover) and (pointer: fine) and (min-width: 1024px) {
+  .task-actions {
+    opacity: 0;
+    transition: opacity 150ms;
+  }
+  .group:hover .task-actions,
+  .group:focus-within .task-actions {
+    opacity: 1;
   }
 }

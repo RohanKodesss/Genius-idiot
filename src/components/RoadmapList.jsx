@@ -129,7 +129,7 @@ export default function RoadmapList({ goalId, tasks }) {
             setDraft({ title: '', link: '', est_minutes: '' });
             setAdding(true);
           }}
-          className="mt-4 inline-flex items-center gap-2 text-sm text-slate hover:text-ink"
+          className="mt-4 inline-flex items-center gap-2 text-sm text-slate hover:text-ink max-lg:min-h-[44px]"
         >
           <Plus className="w-4 h-4" aria-hidden="true" />
           Add task

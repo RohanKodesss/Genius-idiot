@@ -45,8 +45,8 @@ export default function Settings() {
   return (
     <div className="grid gap-6">
       <div>
-        <h1 className="font-display text-3xl text-ink">Settings</h1>
-        <p className="mt-1 text-sm text-slate">
+        <h1 className="font-display text-2xl text-ink sm:text-3xl">Settings</h1>
+        <p className="mt-1 break-words text-sm text-slate">
           {authUser?.email}
           {demoMode && ' · demo data lives in this browser'}
         </p>
@@ -60,15 +60,15 @@ export default function Settings() {
           {goals.map((goal) => (
             <li key={goal.id} className="flex items-center justify-between gap-3 py-3">
               <div className="min-w-0">
-                <p className="text-[15px] text-ink truncate">{goal.name}</p>
+                <p className="break-words text-[15px] text-ink">{goal.name}</p>
                 <p className="text-xs text-mist tabular-nums">{goal.daily_minutes} min/day</p>
               </div>
-              <div className="flex items-center gap-1 shrink-0">
+              <div className="flex shrink-0 items-center gap-1">
                 <button
                   type="button"
                   onClick={() => setEditing({ ...goal })}
                   aria-label={`Edit ${goal.name}`}
-                  className="w-9 h-9 rounded-lg flex items-center justify-center text-slate hover:text-ink hover:bg-ivory"
+                  className="flex h-11 w-11 items-center justify-center rounded-lg text-slate hover:bg-ivory hover:text-ink lg:h-9 lg:w-9"
                 >
                   <Pencil className="w-4 h-4" />
                 </button>
@@ -76,7 +76,7 @@ export default function Settings() {
                   type="button"
                   onClick={() => setDeleting(goal)}
                   aria-label={`Delete ${goal.name}`}
-                  className="w-9 h-9 rounded-lg flex items-center justify-center text-bordeaux hover:bg-bordeaux/5"
+                  className="flex h-11 w-11 items-center justify-center rounded-lg text-bordeaux hover:bg-bordeaux/5 lg:h-9 lg:w-9"
                 >
                   <Trash2 className="w-4 h-4" />
                 </button>
@@ -133,14 +133,14 @@ export default function Settings() {
               .map((restDay) => (
                 <li
                   key={restDay.id}
-                  className="flex items-center justify-between gap-3 py-2 text-sm"
+                  className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 py-2 text-sm"
                 >
-                  <span className="text-ink truncate">{goalName(restDay.goal_id)}</span>
-                  <span className="text-slate text-xs">{formatDay(restDay.date)}</span>
+                  <span className="min-w-0 break-words text-ink">{goalName(restDay.goal_id)}</span>
+                  <span className="text-xs text-slate">{formatDay(restDay.date)}</span>
                   <button
                     type="button"
                     onClick={() => unmarkRestDay(restDay.goal_id, restDay.date)}
-                    className="text-xs text-slate hover:text-ink underline underline-offset-4 shrink-0"
+                    className="shrink-0 text-xs text-slate hover:text-ink underline underline-offset-4"
                   >
                     Remove
                   </button>

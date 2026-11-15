@@ -79,12 +79,12 @@ export default function Login() {
   };
 
   return (
-    <main className="min-h-screen bg-ivory flex items-center justify-center px-4 py-12">
-      <div className="fixed right-4 top-4">
+    <main className="flex min-h-[100dvh] items-center justify-center bg-ivory px-4 py-10 sm:py-12">
+      <div className="fixed right-3 top-3 z-10 sm:right-4 sm:top-4">
         <ThemeToggle className="border-sand bg-parchment" />
       </div>
       <div className="w-full max-w-sm">
-        <p className="font-display text-2xl text-ink tracking-tight text-center">
+        <p className="text-center font-display text-2xl text-ink tracking-tight">
           GENIUS IDIOT
         </p>
         <p className="mt-2 text-sm text-slate text-center">
@@ -101,7 +101,7 @@ export default function Login() {
         )}
 
         {pendingEmail ? (
-          <div className="mt-8 bg-parchment border border-sand rounded-2xl p-6 shadow-card grid gap-4">
+          <div className="mt-8 bg-parchment border border-sand rounded-2xl p-5 shadow-card grid gap-4 sm:p-6">
             <MailCheck className="w-8 h-8 text-champagne" aria-hidden="true" />
             <h1 className="font-display text-xl text-ink">Confirm your email</h1>
             <p className="text-sm text-slate">
@@ -163,7 +163,7 @@ export default function Login() {
         ) : (
           <form
             onSubmit={submit}
-            className="mt-8 bg-parchment border border-sand rounded-2xl p-6 shadow-card grid gap-4"
+            className="mt-8 bg-parchment border border-sand rounded-2xl p-5 shadow-card grid gap-4 sm:p-6"
           >
             <h1 className="font-display text-xl text-ink">
               {mode === 'signup'

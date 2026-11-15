@@ -22,7 +22,7 @@ export default function ThemeToggle({ className = '' }) {
       onClick={toggle}
       aria-label={`Switch to ${next} mode`}
       title={`Switch to ${next} mode`}
-      className={`grid h-9 w-9 place-items-center rounded-xl border border-transparent text-slate hover:border-sand hover:bg-ivory hover:text-ink ${className}`}
+      className={`grid h-11 w-11 place-items-center rounded-xl border border-transparent text-slate hover:border-sand hover:bg-ivory hover:text-ink lg:h-9 lg:w-9 ${className}`}
     >
       {theme === 'dark' ? (
         <Sun className="h-4 w-4" aria-hidden="true" />

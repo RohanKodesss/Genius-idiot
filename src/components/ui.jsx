@@ -34,7 +34,7 @@ export function Input({ label, error, id, className = '', ...props }) {
         id={inputId}
         aria-invalid={!!error}
         aria-describedby={error ? `${inputId}-err` : undefined}
-        className={`w-full bg-ivory border border-sand rounded-xl px-4 py-2.5 text-[15px] text-ink placeholder:text-mist focus:border-champagne focus:ring-2 focus:ring-champagne/20 transition ${
+        className={`w-full min-w-0 bg-ivory border border-sand rounded-xl px-4 py-2.5 text-base sm:text-[15px] text-ink placeholder:text-mist focus:border-champagne focus:ring-2 focus:ring-champagne/20 transition ${
           error ? 'border-bordeaux' : ''
         } ${className}`}
         {...props}
@@ -59,7 +59,7 @@ export function Select({ label, id, children, ...props }) {
       )}
       <select
         id={selectId}
-        className="w-full bg-ivory border border-sand rounded-xl px-3 py-2.5 text-[15px] text-ink focus:border-champagne focus:ring-2 focus:ring-champagne/20"
+        className="w-full min-w-0 bg-ivory border border-sand rounded-xl px-3 py-2.5 text-base sm:text-[15px] text-ink focus:border-champagne focus:ring-2 focus:ring-champagne/20"
         {...props}
       >
         {children}
@@ -70,7 +70,7 @@ export function Select({ label, id, children, ...props }) {
 
 export function Card({ className = '', children }) {
   return (
-    <div className={`bg-parchment rounded-2xl p-6 border border-sand shadow-card ${className}`}>
+    <div className={`min-w-0 bg-parchment rounded-2xl p-5 sm:p-6 border border-sand shadow-card ${className}`}>
       {children}
     </div>
   );
@@ -82,7 +82,7 @@ export function Skeleton({ className = '' }) {
 
 export function EmptyState({ icon: Icon, headline, helper, action, tone = 'default' }) {
   return (
-    <div className="text-center py-16">
+    <div className="text-center py-12 sm:py-16 px-4">
       {Icon && (
         <div
           className={`w-12 h-12 mx-auto rounded-full border flex items-center justify-center ${
@@ -94,7 +94,9 @@ export function EmptyState({ icon: Icon, headline, helper, action, tone = 'defau
           <Icon className="w-5 h-5" />
         </div>
       )}
-      {headline && <h2 className="font-display text-xl text-ink mt-4">{headline}</h2>}
+      {headline && (
+        <h2 className="font-display text-xl text-ink mt-4 break-words">{headline}</h2>
+      )}
       {helper && <p className="text-sm text-slate max-w-sm mx-auto mt-2">{helper}</p>}
       {action && <div className="mt-6">{action}</div>}
     </div>
@@ -133,8 +135,8 @@ export function Spinner({ label = 'Loading…' }) {
 
 export function BootLoader() {
   return (
-    <div className="min-h-screen bg-ivory flex flex-col items-center justify-center gap-6">
-      <p className="font-display text-2xl text-ink tracking-tight">GENIUS IDIOT</p>
+    <div className="min-h-[100dvh] bg-ivory flex flex-col items-center justify-center gap-6 px-4">
+      <p className="font-display text-2xl text-ink tracking-tight text-center">GENIUS IDIOT</p>
       <div className="flex gap-1.5" role="status" aria-label="Loading">
         {[0, 150, 300].map((delay) => (
           <span

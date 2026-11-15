@@ -19,16 +19,17 @@ export default function ShiftGraph({ history }) {
   const summary = history.map((point) => point.shift).join(', ');
 
   return (
-    <div>
-      <div className="h-40 lg:h-[220px]">
+    <div className="min-w-0">
+      <div className="h-44 min-w-0 sm:h-48 lg:h-[220px]">
         <ResponsiveContainer width="100%" height="100%">
-          <LineChart data={history} accessibilityLayer margin={{ top: 8, right: 8, left: -20, bottom: 0 }}>
+          <LineChart data={history} accessibilityLayer margin={{ top: 8, right: 8, left: -20, bottom: 4 }}>
             <CartesianGrid stroke="var(--chart-grid)" strokeDasharray="3 3" vertical={false} />
             <XAxis
               dataKey="date"
               tickFormatter={(value) => format(fromDay(value), 'MMM d')}
               tick={{ fill: 'var(--chart-tick)', fontSize: 11 }}
               interval="preserveStartEnd"
+              minTickGap={24}
               tickLine={false}
               axisLine={{ stroke: 'var(--chart-grid)' }}
             />

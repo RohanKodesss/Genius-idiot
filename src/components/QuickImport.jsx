@@ -68,7 +68,7 @@ export default function QuickImport({ startDay, onImport, importLabel = 'Import 
           }}
           placeholder={EXAMPLE}
           spellCheck={false}
-          className={`w-full font-mono text-sm bg-ivory border rounded-xl p-4 min-h-[200px] text-ink placeholder:text-mist focus:border-champagne focus:ring-2 focus:ring-champagne/20 ${
+          className={`w-full min-h-[200px] rounded-xl border bg-ivory p-4 font-mono text-base text-ink placeholder:text-mist focus:border-champagne focus:ring-2 focus:ring-champagne/20 sm:text-sm ${
             dragging ? 'border-champagne bg-champagne/5' : 'border-sand'
           }`}
         />
