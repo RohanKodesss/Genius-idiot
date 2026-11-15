@@ -112,6 +112,9 @@ Two project settings must match your app URL, or the links in those emails point
 This project is already configured for `http://localhost:5173`. If you deploy, add the deployed
 origin to both fields or confirmation links will fail.
 
+Password reset emails use the same settings: the link returns the user to
+`<app origin>/reset-password`, so the wildcard redirect entry above covers it.
+
 The built-in SMTP is limited to a couple of signup emails per hour. For testing real accounts,
 either wait, configure a custom SMTP, or turn off **Authentication → Providers → Email → Confirm
 email** temporarily (the app still refuses unconfirmed sessions, but new signups are auto-confirmed).
@@ -299,6 +302,8 @@ Two pointers                  ← plain title
 | Add one task | Goal page → Roadmap → **Add task** | appended to the end of the queue |
 | Rename / delete a goal | Settings | delete cascades to tasks + rest days |
 | Export | Settings → **Export JSON** | goals + tasks + rest days snapshot |
+| Reset a forgotten password | Login → **Forgot password?** | emails a link that opens `/reset-password` |
+| Read the guide | Sidebar → **How it works** | what the app does, in plain language |
 | Log out | Header / Settings | session cleared |
 
 ---
@@ -403,6 +408,8 @@ each sees zero of the other's goals (RLS), and rehearse the missed-day shift onc
 | Login works, dashboard empty, toast "Could not load your data" | wrong env vars, or tables missing | check `.env`, restart `npm run dev` |
 | Signup succeeds but no email arrives | Supabase SMTP rate limit (2/hour) | wait, add a custom SMTP, or disable "Confirm email" while testing |
 | Confirmation link opens `localhost:3000` or a blank page | Site URL does not match the app | set **Site URL** / **Redirect URLs** to the app origin |
+| Reset link logs you in but shows no form | redirect URL not allowed, so the recovery session is dropped | add the app origin (`http://localhost:5173/**`) to **Redirect URLs** |
+| "Reset link expired or already used" | the link was opened twice, or in a different browser | request a fresh link from Login → **Forgot password?** |
 | `email rate limit exceeded` (429) | too many signups per hour | wait, or disable confirmation |
 | PATCH/DELETE returns `[]` | RLS: the row isn't yours | the app treats it as 404 and rolls back the optimistic change |
 | App runs from `localStorage` unexpectedly | env vars empty → demo mode | fill in `.env` or set `VITE_DEMO_MODE=false` |

@@ -77,6 +77,10 @@ export function AppProvider({ children }) {
         setAuthUser(user);
         await reload();
       }
+      // A recovery link signs the user in with a limited session and no data load.
+      if (event === 'PASSWORD_RECOVERY' && user) {
+        setAuthUser(user);
+      }
       if (event === 'SIGNED_OUT') {
         setAuthUser(null);
         setData(EMPTY);
@@ -437,6 +441,10 @@ export function AppProvider({ children }) {
 
   const resendConfirmation = async (email) => repo.resendConfirmation(email);
 
+  const requestPasswordReset = async (email) => repo.requestPasswordReset(email);
+
+  const updatePassword = async (password) => repo.updatePassword(password);
+
   const logOut = async () => {
     await repo.logOut();
     setAuthUser(null);
@@ -473,6 +481,8 @@ export function AppProvider({ children }) {
     logIn,
     signUp,
     resendConfirmation,
+    requestPasswordReset,
+    updatePassword,
     logOut,
     resetDemo,
     completeTask,

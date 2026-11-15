@@ -1,6 +1,6 @@
 import { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { CheckCircle2, Plus } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { CheckCircle2, HelpCircle, Plus } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Button, Card, Input } from '../components/ui';
 import MarkdownImporter from '../components/MarkdownImporter';
@@ -68,6 +68,13 @@ export default function Setup() {
             </button>
           </div>
         </div>
+        <Link
+          to="/how-it-works"
+          className="mt-3 inline-flex items-center gap-1.5 text-xs text-slate hover:text-ink underline underline-offset-4"
+        >
+          <HelpCircle className="w-3.5 h-3.5" aria-hidden="true" />
+          New here? See how it works
+        </Link>
         <h1 className="mt-6 font-display text-3xl text-ink">Set up your library</h1>
         <p className="mt-2 text-sm text-slate max-w-xl">
           One goal, one queue. Create a goal and import its roadmap — one task per day, no

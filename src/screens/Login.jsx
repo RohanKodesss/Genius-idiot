@@ -6,7 +6,8 @@ import { Button, Input, Spinner } from '../components/ui';
 import ThemeToggle from '../components/ThemeToggle';
 
 export default function Login() {
-  const { authUser, logIn, signUp, resendConfirmation, demoMode } = useApp();
+  const { authUser, logIn, signUp, resendConfirmation, requestPasswordReset, demoMode } =
+    useApp();
   // Account creation comes first: no account, no entry.
   const [mode, setMode] = useState('signup');
   const [email, setEmail] = useState('');
@@ -32,6 +33,21 @@ export default function Login() {
     setBusy(true);
     setError('');
     setNotice('');
+
+    if (mode === 'forgot') {
+      const res = await requestPasswordReset(email.trim());
+      setBusy(false);
+      if (!res.ok) {
+        setError(res.message);
+        return;
+      }
+      setNotice(
+        demoMode
+          ? 'Demo mode has no real accounts — any email and password works, so there is nothing to reset.'
+          : 'If that address has an account, a reset link is on its way. Check your inbox and spam folder.',
+      );
+      return;
+    }
 
     const res = mode === 'login' ? await logIn(email, password) : await signUp(email, password);
     setBusy(false);
@@ -150,12 +166,18 @@ export default function Login() {
             className="mt-8 bg-parchment border border-sand rounded-2xl p-6 shadow-card grid gap-4"
           >
             <h1 className="font-display text-xl text-ink">
-              {mode === 'signup' ? 'Create your account' : 'Welcome back'}
+              {mode === 'signup'
+                ? 'Create your account'
+                : mode === 'forgot'
+                  ? 'Reset your password'
+                  : 'Welcome back'}
             </h1>
             <p className="text-sm text-slate">
               {mode === 'signup'
                 ? 'One account per email. You can only enter after you confirm the address.'
-                : 'Log in with a confirmed account.'}
+                : mode === 'forgot'
+                  ? 'Enter the email you signed up with and we will send a reset link to it.'
+                  : 'Log in with a confirmed account.'}
             </p>
 
             <Input
@@ -166,17 +188,33 @@ export default function Login() {
               value={email}
               onChange={(event) => setEmail(event.target.value)}
             />
-            <Input
-              label="Password"
-              type="password"
-              autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
-              required
-              minLength={6}
-              value={password}
-              onChange={(event) => setPassword(event.target.value)}
-            />
+            {mode !== 'forgot' && (
+              <Input
+                label="Password"
+                type="password"
+                autoComplete={mode === 'login' ? 'current-password' : 'new-password'}
+                required
+                minLength={6}
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+              />
+            )}
             {mode === 'signup' && (
               <p className="text-xs text-mist -mt-2">At least 6 characters.</p>
+            )}
+            {mode === 'login' && (
+              <button
+                type="button"
+                onClick={() => {
+                  setMode('forgot');
+                  setPassword('');
+                  setError('');
+                  setNotice('');
+                }}
+                className="text-xs text-slate hover:text-ink underline underline-offset-4 justify-self-start -mt-2"
+              >
+                Forgot password?
+              </button>
             )}
 
             {error && (
@@ -195,23 +233,27 @@ export default function Login() {
                 <Spinner label="Working…" />
               ) : mode === 'login' ? (
                 'Log in'
-              ) : (
+              ) : mode === 'signup' ? (
                 'Create account'
+              ) : (
+                'Send reset link'
               )}
             </Button>
 
             <button
               type="button"
               onClick={() => {
-                setMode(mode === 'login' ? 'signup' : 'login');
+                setMode(mode === 'signup' ? 'login' : mode === 'forgot' ? 'login' : 'signup');
                 setError('');
                 setNotice('');
               }}
               className="text-xs text-slate hover:text-ink underline underline-offset-4 justify-self-center"
             >
-              {mode === 'login'
-                ? 'Need an account? Create one'
-                : 'Already have an account? Log in'}
+              {mode === 'signup'
+                ? 'Already have an account? Log in'
+                : mode === 'forgot'
+                  ? 'Back to log in'
+                  : 'Need an account? Create one'}
             </button>
           </form>
         )}

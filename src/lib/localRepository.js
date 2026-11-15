@@ -214,6 +214,14 @@ export async function resendConfirmation() {
   return ok(null);
 }
 
+export async function requestPasswordReset() {
+  return ok(null);
+}
+
+export async function updatePassword() {
+  return ok(DEMO_USER);
+}
+
 export async function logOut() {
   return ok(null);
 }

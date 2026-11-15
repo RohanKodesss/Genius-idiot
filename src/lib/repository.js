@@ -88,6 +88,24 @@ export async function resendConfirmation(email) {
   return { ok: true, data: null };
 }
 
+// Recovery: the email lands on /reset-password with a short-lived session.
+export async function requestPasswordReset(email) {
+  if (DEMO_MODE) return local.requestPasswordReset();
+  const { error } = await supabase.auth.resetPasswordForEmail(email, {
+    redirectTo: `${window.location.origin}/reset-password`,
+  });
+  if (error) return authFail(error, error.status ?? 400);
+  return { ok: true, data: null };
+}
+
+// Requires the recovery session (or an existing login) — Supabase rejects it otherwise.
+export async function updatePassword(password) {
+  if (DEMO_MODE) return local.updatePassword();
+  const { data, error } = await supabase.auth.updateUser({ password });
+  if (error) return authFail(error, error.status ?? 400);
+  return { ok: true, data: data?.user ?? null };
+}
+
 export async function logOut() {
   if (DEMO_MODE) return local.logOut();
   const { error } = await supabase.auth.signOut();

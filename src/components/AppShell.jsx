@@ -3,6 +3,7 @@ import { Link, NavLink, Outlet, useNavigate } from 'react-router-dom';
 import {
   CalendarDays,
   Flame,
+  HelpCircle,
   LayoutDashboard,
   LogOut,
   Menu,
@@ -81,6 +82,7 @@ function SidePanel({ onNavigate }) {
         <div className="mt-2 grid gap-1">
           <MenuItem to="/" icon={LayoutDashboard} label="Dashboard" onNavigate={onNavigate} end />
           <MenuItem to="/setup" icon={Plus} label="New goal" onNavigate={onNavigate} />
+          <MenuItem to="/how-it-works" icon={HelpCircle} label="How it works" onNavigate={onNavigate} />
           <MenuItem to="/settings" icon={Settings} label="Settings" onNavigate={onNavigate} />
         </div>
       </nav>
