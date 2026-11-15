@@ -29,6 +29,7 @@ export default function RoadmapList({ goalId, tasks }) {
             isFirst={index === 0}
             isLast={index === ordered.length - 1}
             onUndo={undoTask}
+            onNote={(taskId, notes) => updateTask(taskId, { notes })}
             onMoveUp={(row) => move(row, -1)}
             onMoveDown={(row) => move(row, 1)}
             onDelete={(row) => {

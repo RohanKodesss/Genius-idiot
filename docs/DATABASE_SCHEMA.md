@@ -206,6 +206,7 @@ This is a classic **many-to-many with a junction table**. You'd only add it if t
 | `planned_date` | `date` | ❌ Required | — | — | **Frozen snapshot** of when this task was originally planned; the baseline for shift calculation |
 | `completed_at` | `timestamptz` | ✅ Optional | `NULL` | — | When the user completed it; `NULL` = pending |
 | `minutes_spent` | `integer` | ✅ Optional | `NULL` | `CHECK (minutes_spent IS NULL OR minutes_spent >= 0)` | Optional time log |
+| `notes` | `text` | ✅ Optional | `NULL` | — | Free-text note the user writes on the task (what they learned, where they stopped). Not part of the schedule; no constraint, no index |
 | `created_at` | `timestamptz` | ❌ Required | `now()` | — | Audit |
 | `updated_at` | `timestamptz` | ❌ Required | `now()` | Trigger-maintained | Audit |
 

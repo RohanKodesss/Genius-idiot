@@ -1,5 +1,6 @@
 import { ArrowDown, ArrowUp, Check, Circle, ExternalLink, Pencil, Trash2 } from 'lucide-react';
 import { formatDay } from '../lib/dates';
+import TaskNote from './TaskNote';
 
 // One roadmap line: status, title, link, edit/reorder/delete.
 export default function TaskRow({
@@ -9,6 +10,7 @@ export default function TaskRow({
   onDelete,
   onMoveUp,
   onMoveDown,
+  onNote,
   isFirst,
   isLast,
 }) {
@@ -50,6 +52,13 @@ export default function TaskRow({
           >
             Open link <ExternalLink className="w-3 h-3" aria-hidden="true" />
           </a>
+        )}
+        {onNote && (
+          <TaskNote
+            value={task.notes}
+            compact
+            onSave={(notes) => onNote(task.id, notes)}
+          />
         )}
       </div>
 

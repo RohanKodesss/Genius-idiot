@@ -33,6 +33,7 @@ create table if not exists public.tasks (
   planned_date   date        not null,
   completed_at   timestamptz,
   minutes_spent  integer,
+  notes          text,
   created_at     timestamptz not null default now(),
   updated_at     timestamptz not null default now(),
 
@@ -55,6 +56,10 @@ create table if not exists public.rest_days (
 
   constraint rest_days_goal_date_unique unique (goal_id, date)
 );
+
+-- Notes: one free-text note per task. `create table if not exists` above
+-- does not add columns to a database that already exists, so this does.
+alter table public.tasks add column if not exists notes text;
 
 -- ────────────────────────────────────────────────────────────
 -- 2. INDEXES

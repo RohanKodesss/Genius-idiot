@@ -27,6 +27,7 @@ is the backend. All business logic is pure functions in `src/lib/`.
 13. [What this app deliberately does not do](#13-what-this-app-deliberately-does-not-do)
 14. [Design decisions (frozen)](#14-design-decisions-frozen)
 15. [Docs index](#15-docs-index)
+16. [Contributing & contact](#16-contributing--contact)
 
 ---
 
@@ -294,6 +295,7 @@ Two pointers                  ← plain title
 | Task completes | automatically at `00:00` | logs `daily_minutes`; the queue moves forward |
 | Undo a completion | Today card → **Undo** | clears `completed_at` and logged minutes |
 | Log minutes | Today card → minutes + **Log** | optional, display-only |
+| Write a note | Today card or Goal page → **Add note** | per task; saved with the task, never touched by a shift |
 | Mark a rest day | Today card / goal page | toggles; protects the streak |
 | See today's total | Today header | minutes done / total, goals done / total |
 | See next 7 days | Goal page | planned vs projected table |
@@ -338,7 +340,8 @@ Three tables, all protected by Row Level Security:
 ```
 goals (id, user_id → auth.users, name, daily_minutes, created_at, updated_at)
   └── tasks (id, goal_id, "order", title, link, est_minutes,
-             planned_date, completed_at, minutes_spent, created_at, updated_at)
+             planned_date, completed_at, minutes_spent, notes,
+             created_at, updated_at)
   └── rest_days (id, goal_id, date, created_at)
 ```
 
@@ -453,3 +456,25 @@ Written at the top of `src/lib/projection.js` and `src/lib/streaks.js`:
 | `docs/TRD.md` | stack, performance, security, testing (partially truncated at source) |
 | `docs/TESTING.md` | unit tests, API tests, RLS test, demo rehearsal |
 | `AGENTS.md` | the build contract and invariants |
+
+---
+
+## 16. Contributing & contact
+
+Genius Idiot is built in the open. Issues, ideas, docs fixes and pull requests are all welcome — the
+best first contribution is usually the roadmap import that failed for you, or a paragraph that did not
+explain itself.
+
+Start with **[CONTRIBUTING.md](CONTRIBUTING.md)**. It covers the layering rule (`src/lib/` stays pure),
+the frozen scheduling decisions, the schema rules, and the checks to run before opening a PR. There is
+no CLA and no process beyond that.
+
+| Where | Link |
+|---|---|
+| Source code | https://github.com/SidhCodez/Genius-idiot |
+| Contributor guide | [CONTRIBUTING.md](CONTRIBUTING.md) |
+| LinkedIn | https://www.linkedin.com/in/siddiq-dev |
+| Discord | `sidhdev` |
+
+Built by **Siddiq** — say hello on [LinkedIn](https://www.linkedin.com/in/siddiq-dev) or on Discord at
+`sidhdev`. The same links live in the app, under **How it works → Contribute**.

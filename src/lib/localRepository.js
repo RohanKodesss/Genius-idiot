@@ -66,6 +66,7 @@ function seed() {
         planned_date: planned,
         completed_at: done ? new Date(`${planned}T19:00:00`).toISOString() : null,
         minutes_spent: done ? 40 : null,
+        notes: index === 0 ? 'Start here — write what you learn as you go.' : null,
         created_at: now,
         updated_at: now,
       });
@@ -216,6 +217,10 @@ export async function resendConfirmation() {
 
 export async function requestPasswordReset() {
   return ok(null);
+}
+
+export async function completePasswordRecovery() {
+  return getCurrentUser();
 }
 
 export async function updatePassword() {

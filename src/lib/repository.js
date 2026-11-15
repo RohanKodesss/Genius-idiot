@@ -98,6 +98,48 @@ export async function requestPasswordReset(email) {
   return { ok: true, data: null };
 }
 
+// Completes a recovery link in whichever shape Supabase sent it: a PKCE
+// `?code=`, a `?token_hash=…&type=recovery`, or implicit tokens in the hash that
+// supabase-js consumes itself. Without this, the reset screen saw no session and
+// showed "link expired" instead of the form.
+function clearRecoveryParams() {
+  if (window.location.hash || window.location.search.includes('code=')) {
+    window.history.replaceState(null, '', window.location.pathname);
+  }
+}
+
+export async function completePasswordRecovery() {
+  if (DEMO_MODE) return local.completePasswordRecovery();
+
+  const url = new URL(window.location.href);
+  const hash = new URLSearchParams(window.location.hash.replace(/^#/, ''));
+  const linkError = hash.get('error_description') ?? hash.get('error');
+  if (linkError) {
+    return fail(400, hash.get('error_code') ?? null, 'This reset link has expired. Request a new one.', false);
+  }
+
+  const code = url.searchParams.get('code');
+  if (code) {
+    const { data, error } = await supabase.auth.exchangeCodeForSession(code);
+    if (error) return fromError(error, 400);
+    clearRecoveryParams();
+    return { ok: true, data: data?.session?.user ?? null };
+  }
+
+  const tokenHash = url.searchParams.get('token_hash');
+  if (tokenHash && url.searchParams.get('type') === 'recovery') {
+    const { data, error } = await supabase.auth.verifyOtp({ type: 'recovery', token_hash: tokenHash });
+    if (error) return fromError(error, 400);
+    clearRecoveryParams();
+    return { ok: true, data: data?.session?.user ?? null };
+  }
+
+  const { data, error } = await supabase.auth.getSession();
+  if (error) return fromError(error, 401);
+  if (data.session?.user) clearRecoveryParams();
+  return { ok: true, data: data.session?.user ?? null };
+}
+
 // Requires the recovery session (or an existing login) — Supabase rejects it otherwise.
 export async function updatePassword(password) {
   if (DEMO_MODE) return local.updatePassword();

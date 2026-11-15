@@ -288,6 +288,7 @@ export function AppProvider({ children }) {
       planned_date: task.planned_date ?? addDay(baseDay, index),
       completed_at: null,
       minutes_spent: null,
+      notes: task.notes ?? null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     }));
@@ -316,6 +317,7 @@ export function AppProvider({ children }) {
       planned_date: addDay(today, pending),
       completed_at: null,
       minutes_spent: null,
+      notes: null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -443,6 +445,13 @@ export function AppProvider({ children }) {
 
   const requestPasswordReset = async (email) => repo.requestPasswordReset(email);
 
+  // Stable so the reset screen can run it once on mount.
+  const completePasswordRecovery = useCallback(async () => {
+    const res = await repo.completePasswordRecovery();
+    if (res.ok && res.data) setAuthUser(res.data);
+    return res;
+  }, []);
+
   const updatePassword = async (password) => repo.updatePassword(password);
 
   const logOut = async () => {
@@ -482,6 +491,7 @@ export function AppProvider({ children }) {
     signUp,
     resendConfirmation,
     requestPasswordReset,
+    completePasswordRecovery,
     updatePassword,
     logOut,
     resetDemo,

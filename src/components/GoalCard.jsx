@@ -5,6 +5,7 @@ import { formatDay } from '../lib/dates';
 import GoalTimer from './GoalTimer';
 import MinutesInput from './MinutesInput';
 import StreakBadge from './StreakBadge';
+import TaskNote from './TaskNote';
 
 // One goal's card on Today. A rest day pauses the queue, so `projection[0]`
 // only counts as today's task when its projected date is actually today.
@@ -61,6 +62,11 @@ export default function GoalCard({ goal, projection, streak, progress, restToday
                 {formatDay(todayTask.planned_date)}
               </p>
             )}
+            <TaskNote
+              value={todayTask.notes}
+              compact
+              onSave={(notes) => updateTask(todayTask.id, { notes })}
+            />
             <div className="mt-4">
               <GoalTimer
                 goal={goal}

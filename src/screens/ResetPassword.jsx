@@ -1,13 +1,17 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { KeyRound, MailCheck } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { BootLoader, Button, Input, Spinner } from '../components/ui';
 
-// Landing page for the Supabase recovery link. The link signs the user in with a
-// short-lived recovery session, so a session is the proof that the link is valid.
+// Landing page for the Supabase recovery link. The link arrives as a PKCE code,
+// a token hash, or implicit tokens in the hash — `completePasswordRecovery`
+// turns whichever one it is into a session, and that session is what unlocks the
+// form below. A link with no session left is genuinely dead.
 export default function ResetPassword() {
-  const { authUser, loading, demoMode, updatePassword } = useApp();
+  const { authUser, loading, demoMode, completePasswordRecovery, updatePassword } = useApp();
+  const [checking, setChecking] = useState(true);
+  const [linkError, setLinkError] = useState('');
   const [password, setPassword] = useState('');
   const [confirm, setConfirm] = useState('');
   const [error, setError] = useState('');
@@ -15,7 +19,26 @@ export default function ResetPassword() {
   const [done, setDone] = useState(false);
   const navigate = useNavigate();
 
-  if (authUser === undefined || (authUser && loading)) return <BootLoader />;
+  useEffect(() => {
+    let active = true;
+    if (authUser) {
+      setChecking(false);
+      return () => {
+        active = false;
+      };
+    }
+    (async () => {
+      const res = await completePasswordRecovery();
+      if (!active) return;
+      if (!res.ok) setLinkError(res.message ?? '');
+      setChecking(false);
+    })();
+    return () => {
+      active = false;
+    };
+  }, [authUser, completePasswordRecovery]);
+
+  if (authUser === undefined || (authUser && loading) || checking) return <BootLoader />;
 
   const submit = async (event) => {
     event.preventDefault();
@@ -46,10 +69,14 @@ export default function ResetPassword() {
         {!authUser ? (
           <div className="mt-8 bg-parchment border border-sand rounded-2xl p-6 shadow-card grid gap-4">
             <MailCheck className="w-8 h-8 text-champagne" aria-hidden="true" />
-            <h1 className="font-display text-xl text-ink">Link expired or already used</h1>
+            <h1 className="font-display text-xl text-ink">This link is not active</h1>
             <p className="text-sm text-slate">
-              This reset link is no longer valid. Reset links work once and expire quickly — request
-              a fresh one and open it in this browser.
+              {linkError ||
+                'The reset link is no longer valid. Links work once and expire quickly.'}
+            </p>
+            <p className="text-xs text-mist">
+              Reset links only work in the browser you requested them from, and only until they are
+              used. Request a fresh one and open it in this same browser.
             </p>
             <Link to="/login">
               <Button className="w-full">Request a new link</Button>
