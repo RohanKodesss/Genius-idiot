@@ -3,16 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
   CalendarClock,
-  Check,
   CheckCircle2,
-  Copy,
   Flame,
-  GitBranch,
-  Github,
   History,
-  Linkedin,
   ListChecks,
-  MessageCircle,
   Moon,
   ShieldCheck,
   Timer,
@@ -24,9 +18,6 @@ import { hasSeenGuide, markGuideSeen } from '../lib/guide';
 
 // A plain-language guide for someone who just signed up. No state, no data:
 // it explains the model, not the user's numbers.
-const SOURCE_URL = 'https://github.com/SidhCodez/Genius-idiot';
-const LINKEDIN_URL = 'https://www.linkedin.com/in/siddiq-dev';
-const DISCORD_HANDLE = 'sidhdev';
 const steps = [
   {
     icon: ListChecks,
@@ -79,26 +70,14 @@ export default function HowItWorks() {
   // The gate opens after this is set; AuthGuard re-checks it on the next route.
   const [read, setRead] = useState(() => hasSeenGuide(authUser?.id));
 
-  const [copied, setCopied] = useState(false);
-
   const confirm = () => {
     if (authUser?.id) markGuideSeen(authUser.id);
     setRead(true);
     navigate('/', { replace: true });
   };
 
-  const copyDiscord = async () => {
-    try {
-      await navigator.clipboard.writeText(DISCORD_HANDLE);
-      setCopied(true);
-      setTimeout(() => setCopied(false), 2000);
-    } catch {
-      // Clipboard access can be blocked; the handle is visible either way.
-    }
-  };
-
   return (
-    <div className="grid gap-8">
+    <div className="mx-auto grid w-full max-w-[1600px] gap-8">
       <header>
         <Badge tone="champagne">How it works</Badge>
         <h1 className="mt-3 font-display text-3xl text-ink">
@@ -202,92 +181,6 @@ export default function HowItWorks() {
               <p>
                 You can export everything as JSON from Settings at any time. Tasks you complete are
                 history: they stay in the queue and are never deleted by a shift.
-              </p>
-            </div>
-          </div>
-        </Card>
-      </section>
-
-      <section aria-labelledby="how-contribute" className="grid gap-4">
-        <h2 id="how-contribute" className="font-display text-xl text-ink">
-          Contribute
-        </h2>
-        <Card>
-          <div className="flex gap-4">
-            <GitBranch className="w-5 h-5 text-champagne shrink-0 mt-0.5" aria-hidden="true" />
-            <div className="min-w-0 grid gap-4">
-              <p className="text-sm text-slate">
-                Genius Idiot is built in the open. If it saved you a bad week, the best way to say
-                thanks is to send something back — a fix, a clearer paragraph, or a roadmap import
-                that failed for you. The contributor guide covers the layering rules and the
-                scheduling decisions that must not move.
-              </p>
-
-              <div className="flex flex-wrap items-center gap-2">
-                <a
-                  href={SOURCE_URL}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-sand px-4 py-2.5 font-medium text-ink transition hover:border-ink hover:bg-parchment"
-                >
-                  <Github className="h-4 w-4" aria-hidden="true" />
-                  View the source
-                </a>
-
-                <a
-                  href={LINKEDIN_URL}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="inline-flex items-center justify-center gap-2 rounded-xl border border-sand px-4 py-2.5 font-medium text-ink transition hover:border-ink hover:bg-parchment"
-                >
-                  <span
-                    aria-hidden="true"
-                    className="grid h-5 w-5 place-items-center rounded-md bg-[#0A66C2] text-white"
-                  >
-                    <Linkedin className="h-3.5 w-3.5" />
-                  </span>
-                  Connect on LinkedIn
-                </a>
-
-                <span className="inline-flex items-center gap-2 rounded-xl border border-sand px-3 py-2 text-sm">
-                  <span
-                    aria-hidden="true"
-                    className="grid h-5 w-5 place-items-center rounded-md bg-[#5865F2] text-white"
-                  >
-                    <MessageCircle className="h-3.5 w-3.5" />
-                  </span>
-                  <span className="text-slate">Discord</span>
-                  <code className="font-mono text-[13px] text-ink">{DISCORD_HANDLE}</code>
-                  <button
-                    type="button"
-                    onClick={copyDiscord}
-                    aria-label={`Copy Discord username ${DISCORD_HANDLE}`}
-                    className="grid h-7 w-7 place-items-center rounded-lg text-slate transition hover:bg-ivory hover:text-ink"
-                  >
-                    {copied ? (
-                      <Check className="h-3.5 w-3.5 text-sage" aria-hidden="true" />
-                    ) : (
-                      <Copy className="h-3.5 w-3.5" aria-hidden="true" />
-                    )}
-                  </button>
-                  <span aria-live="polite" className="sr-only">
-                    {copied ? 'Discord username copied' : ''}
-                  </span>
-                </span>
-              </div>
-
-              <p className="text-xs text-mist">
-                Built by{' '}
-                <a
-                  href={LINKEDIN_URL}
-                  target="_blank"
-                  rel="noreferrer"
-                  className="text-slate underline underline-offset-4 hover:text-ink"
-                >
-                  Siddiq
-                </a>
-                . Questions, ideas or a broken import — find me on Discord at{' '}
-                <span className="text-slate">{DISCORD_HANDLE}</span>.
               </p>
             </div>
           </div>

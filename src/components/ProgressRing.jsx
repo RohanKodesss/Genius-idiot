@@ -5,7 +5,7 @@ export default function ProgressRing({ value, max, size = 96, label, tone = 'lig
   const circumference = 2 * Math.PI * radius;
   const palette =
     tone === 'dark'
-      ? { track: 'rgba(255,255,255,0.18)', stroke: '#8FD6AE', text: 'text-linen' }
+      ? { track: 'rgba(255,255,255,0.18)', stroke: 'rgb(var(--sage))', text: 'text-linen' }
       : { track: 'rgb(var(--sand))', stroke: 'rgb(var(--champagne))', text: 'text-ink' };
 
   return (

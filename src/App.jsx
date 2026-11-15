@@ -1,19 +1,24 @@
+import { lazy, Suspense } from 'react';
 import { Navigate, Route, Routes } from 'react-router-dom';
 import AppShell from './components/AppShell';
 import ToastViewport from './components/Toast';
 import AuthGuard from './routes/AuthGuard';
-import Login from './screens/Login';
-import Setup from './screens/Setup';
-import Today from './screens/Today';
-import GoalDashboard from './screens/GoalDashboard';
-import HowItWorks from './screens/HowItWorks';
-import ResetPassword from './screens/ResetPassword';
-import Settings from './screens/Settings';
+import { BootLoader } from './components/ui';
+
+const Landing = lazy(() => import('./screens/Landing'));
+const Login = lazy(() => import('./screens/Login'));
+const Setup = lazy(() => import('./screens/Setup'));
+const Today = lazy(() => import('./screens/Today'));
+const GoalDashboard = lazy(() => import('./screens/GoalDashboard'));
+const HowItWorks = lazy(() => import('./screens/HowItWorks'));
+const ResetPassword = lazy(() => import('./screens/ResetPassword'));
+const Settings = lazy(() => import('./screens/Settings'));
 
 export default function App() {
   return (
-    <>
+    <Suspense fallback={<BootLoader />}>
       <Routes>
+        <Route path="/welcome" element={<Landing />} />
         <Route path="/login" element={<Login />} />
         <Route path="/reset-password" element={<ResetPassword />} />
 
@@ -37,6 +42,6 @@ export default function App() {
       </Routes>
 
       <ToastViewport />
-    </>
+    </Suspense>
   );
 }

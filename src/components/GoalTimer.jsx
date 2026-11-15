@@ -106,7 +106,7 @@ export default function GoalTimer({ goal, task, onFinish }) {
         <span
           role="timer"
           aria-label={`${Math.ceil(remaining / 60_000)} minutes left`}
-          className="font-mono text-2xl font-semibold tabular-nums text-ink"
+          className="font-mono text-2xl font-bold tracking-wider tabular-nums text-ink"
         >
           {formatClock(remaining)}
         </span>

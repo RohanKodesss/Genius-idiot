@@ -2,6 +2,7 @@ import { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { CheckCircle2, HelpCircle, Plus } from 'lucide-react';
 import { useApp } from '../context/AppContext';
+import BrandLogo from '../components/BrandLogo';
 import { Button, Card, Input } from '../components/ui';
 import MarkdownImporter from '../components/MarkdownImporter';
 import TaskCardBuilder from '../components/TaskCardBuilder';
@@ -54,9 +55,12 @@ export default function Setup() {
 
   return (
     <main className="min-h-[100dvh] bg-ivory px-4 py-8 sm:px-6 sm:py-10 lg:py-14">
-      <div className="mx-auto max-w-3xl">
+      <div className="mx-auto w-full">
         <div className="flex items-start justify-between gap-3">
-          <p className="min-w-0 font-display text-2xl text-ink tracking-tight">GENIUS IDIOT</p>
+          <div className="flex min-w-0 items-center gap-2 font-display text-xl tracking-tight text-ink sm:text-2xl">
+            <BrandLogo className="h-9 w-9 rounded-lg bg-white" />
+            <span>GENIUS IDIOT</span>
+          </div>
           <div className="flex shrink-0 items-center gap-1">
             <ThemeToggle />
             <button

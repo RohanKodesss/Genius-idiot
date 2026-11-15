@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { KeyRound, MailCheck } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { BootLoader, Button, Input, Spinner } from '../components/ui';
+import AuthLayout from '../components/AuthLayout';
 
 // Landing page for the Supabase recovery link. The link arrives as a PKCE code,
 // a token hash, or implicit tokens in the hash — `completePasswordRecovery`
@@ -62,12 +63,9 @@ export default function ResetPassword() {
   };
 
   return (
-    <main className="min-h-screen bg-ivory flex items-center justify-center px-4 py-12">
-      <div className="w-full max-w-sm">
-        <p className="font-display text-2xl text-ink tracking-tight text-center">GENIUS IDIOT</p>
-
+    <AuthLayout>
         {!authUser ? (
-          <div className="mt-8 bg-parchment border border-sand rounded-2xl p-6 shadow-card grid gap-4">
+          <div className="app-card mt-8 grid gap-4 rounded-2xl p-6 sm:p-7">
             <MailCheck className="w-8 h-8 text-champagne" aria-hidden="true" />
             <h1 className="font-display text-xl text-ink">This link is not active</h1>
             <p className="text-sm text-slate">
@@ -83,7 +81,7 @@ export default function ResetPassword() {
             </Link>
           </div>
         ) : done ? (
-          <div className="mt-8 bg-parchment border border-sand rounded-2xl p-6 shadow-card grid gap-4">
+          <div className="app-card mt-8 grid gap-4 rounded-2xl p-6 sm:p-7">
             <KeyRound className="w-8 h-8 text-sage" aria-hidden="true" />
             <h1 className="font-display text-xl text-ink">Password updated</h1>
             <p className="text-sm text-slate">
@@ -96,10 +94,10 @@ export default function ResetPassword() {
         ) : (
           <form
             onSubmit={submit}
-            className="mt-8 bg-parchment border border-sand rounded-2xl p-6 shadow-card grid gap-4"
+            className="app-card mt-8 grid gap-4 rounded-2xl p-6 sm:p-7"
           >
-            <h1 className="font-display text-xl text-ink">Set a new password</h1>
-            <p className="text-sm text-slate">
+            <h1 className="font-display text-2xl tracking-tight text-ink sm:text-[28px]">Set a new password</h1>
+            <p className="text-[15px] leading-6 text-slate">
               Signed in as <span className="text-ink">{authUser.email}</span>. Choose a password you
               have not used here before.
             </p>
@@ -151,7 +149,6 @@ export default function ResetPassword() {
             </Link>
           </form>
         )}
-      </div>
-    </main>
+    </AuthLayout>
   );
 }

@@ -1,5 +1,6 @@
 // Shared primitives (UI_SPEC §2.2, §9). Dumb components: props only.
 import { Loader2 } from 'lucide-react';
+import BrandLogo from './BrandLogo';
 
 export function Button({ variant = 'primary', className = '', children, ...props }) {
   const styles = {
@@ -13,7 +14,7 @@ export function Button({ variant = 'primary', className = '', children, ...props
   }[variant];
   return (
     <button
-      className={`inline-flex items-center justify-center gap-2 rounded-xl px-4 py-2.5 font-medium transition disabled:opacity-40 disabled:cursor-not-allowed ${styles} ${className}`}
+      className={`inline-flex min-h-11 items-center justify-center gap-2 rounded-xl px-5 py-2.5 text-sm font-semibold tracking-[0.01em] transition duration-200 disabled:cursor-not-allowed disabled:opacity-40 ${styles} ${className}`}
       {...props}
     >
       {children}
@@ -70,7 +71,7 @@ export function Select({ label, id, children, ...props }) {
 
 export function Card({ className = '', children }) {
   return (
-    <div className={`min-w-0 bg-parchment rounded-2xl p-5 sm:p-6 border border-sand shadow-card ${className}`}>
+    <div className={`app-card min-w-0 rounded-2xl p-5 sm:p-6 ${className}`}>
       {children}
     </div>
   );
@@ -136,7 +137,10 @@ export function Spinner({ label = 'Loading…' }) {
 export function BootLoader() {
   return (
     <div className="min-h-[100dvh] bg-ivory flex flex-col items-center justify-center gap-6 px-4">
-      <p className="font-display text-2xl text-ink tracking-tight text-center">GENIUS IDIOT</p>
+      <div className="flex items-center gap-3">
+        <BrandLogo className="h-12 w-12 rounded-xl bg-white" />
+        <p className="font-display text-2xl text-ink tracking-tight">GENIUS IDIOT</p>
+      </div>
       <div className="flex gap-1.5" role="status" aria-label="Loading">
         {[0, 150, 300].map((delay) => (
           <span

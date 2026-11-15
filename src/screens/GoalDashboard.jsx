@@ -87,8 +87,7 @@ export default function GoalDashboard() {
 
         <div className="mt-4 flex flex-wrap items-end justify-between gap-4">
           <div className="min-w-0">
-            <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-mist">Goal</p>
-            <h1 className="mt-1 break-words font-display text-3xl font-medium tracking-tight text-ink sm:text-4xl">
+            <h1 className="break-words font-display text-3xl font-medium tracking-tight text-ink sm:text-4xl">
               {goal.name}
             </h1>
             <p className="mt-2 text-sm text-slate tabular-nums">
@@ -150,9 +149,9 @@ export default function GoalDashboard() {
 
       {todayTask && !restToday && (
         <Card>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-mist">
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-slate">
             Today's task
-          </p>
+          </h2>
           <p className="mt-2 break-words font-display text-2xl text-ink">{todayTask.title}</p>
           {todayTask.link && (
             <a

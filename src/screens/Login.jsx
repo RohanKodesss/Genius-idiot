@@ -3,7 +3,7 @@ import { Navigate, useNavigate } from 'react-router-dom';
 import { ArrowLeft, MailCheck } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Button, Input, Spinner } from '../components/ui';
-import ThemeToggle from '../components/ThemeToggle';
+import AuthLayout from '../components/AuthLayout';
 
 export default function Login() {
   const { authUser, logIn, signUp, resendConfirmation, requestPasswordReset, demoMode } =
@@ -79,18 +79,7 @@ export default function Login() {
   };
 
   return (
-    <main className="flex min-h-[100dvh] items-center justify-center bg-ivory px-4 py-10 sm:py-12">
-      <div className="fixed right-3 top-3 z-10 sm:right-4 sm:top-4">
-        <ThemeToggle className="border-sand bg-parchment" />
-      </div>
-      <div className="w-full max-w-sm">
-        <p className="text-center font-display text-2xl text-ink tracking-tight">
-          GENIUS IDIOT
-        </p>
-        <p className="mt-2 text-sm text-slate text-center">
-          Missed days never become overdue debt.
-        </p>
-
+    <AuthLayout>
         {demoMode && (
           <p
             role="status"
@@ -101,7 +90,7 @@ export default function Login() {
         )}
 
         {pendingEmail ? (
-          <div className="mt-8 bg-parchment border border-sand rounded-2xl p-5 shadow-card grid gap-4 sm:p-6">
+          <div className="app-card mt-8 grid gap-4 rounded-2xl p-5 sm:p-7">
             <MailCheck className="w-8 h-8 text-champagne" aria-hidden="true" />
             <h1 className="font-display text-xl text-ink">Confirm your email</h1>
             <p className="text-sm text-slate">
@@ -163,16 +152,16 @@ export default function Login() {
         ) : (
           <form
             onSubmit={submit}
-            className="mt-8 bg-parchment border border-sand rounded-2xl p-5 shadow-card grid gap-4 sm:p-6"
+            className="app-card mt-8 grid gap-4 rounded-2xl p-5 sm:p-7"
           >
-            <h1 className="font-display text-xl text-ink">
+            <h1 className="font-display text-2xl tracking-tight text-ink sm:text-[28px]">
               {mode === 'signup'
                 ? 'Create your account'
                 : mode === 'forgot'
                   ? 'Reset your password'
                   : 'Welcome back'}
             </h1>
-            <p className="text-sm text-slate">
+            <p className="text-[15px] leading-6 text-slate">
               {mode === 'signup'
                 ? 'One account per email. You can only enter after you confirm the address.'
                 : mode === 'forgot'
@@ -228,7 +217,7 @@ export default function Login() {
               </p>
             )}
 
-            <Button type="submit" disabled={busy}>
+            <Button type="submit" className="w-full" disabled={busy}>
               {busy ? (
                 <Spinner label="Working…" />
               ) : mode === 'login' ? (
@@ -257,7 +246,6 @@ export default function Login() {
             </button>
           </form>
         )}
-      </div>
-    </main>
+    </AuthLayout>
   );
 }

@@ -43,8 +43,8 @@ export default function Settings() {
   };
 
   return (
-    <div className="grid gap-6">
-      <div>
+    <div className="grid gap-6 xl:grid-cols-2">
+      <div className="xl:col-span-2">
         <h1 className="font-display text-2xl text-ink sm:text-3xl">Settings</h1>
         <p className="mt-1 break-words text-sm text-slate">
           {authUser?.email}

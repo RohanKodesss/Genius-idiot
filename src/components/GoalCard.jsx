@@ -17,7 +17,7 @@ export default function GoalCard({ goal, projection, streak, progress, restToday
   return (
     <section
       aria-label={goal.name}
-      className={`bg-parchment rounded-2xl p-4 sm:p-5 border shadow-card flex flex-col ${
+      className={`surface-card surface-card--interactive rounded-2xl p-5 sm:p-6 flex flex-col ${
         todayTask ? 'border-sand' : 'border-sage/30 bg-sage/5'
       }`}
     >

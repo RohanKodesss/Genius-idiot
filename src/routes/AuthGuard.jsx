@@ -13,7 +13,7 @@ export default function AuthGuard({ allowSetup = false }) {
   const { pathname } = useLocation();
 
   if (authUser === undefined || (authUser && loading)) return <BootLoader />;
-  if (!authUser) return <Navigate to="/login" replace />;
+  if (!authUser) return <Navigate to="/welcome" replace />;
 
   if (!hasSeenGuide(authUser.id) && pathname !== '/how-it-works') {
     return <Navigate to="/how-it-works" replace />;

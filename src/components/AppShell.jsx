@@ -13,6 +13,7 @@ import {
 } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { formatDay } from '../lib/dates';
+import BrandLogo from './BrandLogo';
 import ThemeToggle from './ThemeToggle';
 import useFocusTrap from './useFocusTrap';
 
@@ -52,8 +53,8 @@ function GoalNavItem({ goal, streak, onNavigate }) {
       </span>
       <span className="min-w-0 truncate">{goal.name}</span>
       {streak?.current > 0 && (
-        <span className="ml-auto inline-flex shrink-0 items-center gap-0.5 text-xs tabular-nums text-champagne">
-          <Flame className="w-3 h-3" aria-hidden="true" />
+        <span className="ml-auto inline-flex shrink-0 items-center gap-1 text-xs tabular-nums text-terracotta">
+          <Flame className="w-3 h-3 fill-current" aria-hidden="true" />
           {streak.current}
         </span>
       )}
@@ -62,7 +63,7 @@ function GoalNavItem({ goal, streak, onNavigate }) {
 }
 
 function SidePanel({ onNavigate, compact = false }) {
-  const { goals, streaksByGoal, overallStreak } = useApp();
+  const { goals, streaksByGoal, overallStreak, logOut, authUser } = useApp();
 
   return (
     <div
@@ -71,29 +72,28 @@ function SidePanel({ onNavigate, compact = false }) {
       }`}
     >
       <Link to="/" onClick={onNavigate} className="flex items-center gap-3">
-        <span className="grid h-10 w-10 place-items-center rounded-2xl bg-obsidian font-display text-lg text-linen">
-          G
+        <span className="grid h-11 w-11 shrink-0 place-items-center overflow-hidden rounded-2xl bg-white shadow-card">
+          <BrandLogo className="h-full w-full" />
         </span>
         <span className="min-w-0">
-          <span className="block font-display text-lg leading-tight text-ink">Genius Idiot</span>
-          <span className="block text-[10px] uppercase tracking-[0.18em] text-mist">
-            Private library
+          <span className="block font-display text-[19px] leading-tight text-ink">Genius Idiot</span>
+          <span className="mt-0.5 block text-[11px] text-mist">
+            Your learning library
           </span>
         </span>
       </Link>
 
       <nav aria-label="Main">
-        <p className="px-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-mist">Menu</p>
+        <p className="px-2 text-xs font-semibold text-mist">Workspace</p>
         <div className="mt-2 grid gap-1">
           <MenuItem to="/" icon={LayoutDashboard} label="Dashboard" onNavigate={onNavigate} end />
           <MenuItem to="/setup" icon={Plus} label="New goal" onNavigate={onNavigate} />
-          <MenuItem to="/how-it-works" icon={HelpCircle} label="How it works" onNavigate={onNavigate} />
           <MenuItem to="/settings" icon={Settings} label="Settings" onNavigate={onNavigate} />
         </div>
       </nav>
 
       <nav aria-label="Goals" className={compact ? '' : 'flex min-h-0 flex-1 flex-col'}>
-        <p className="px-2 text-[10px] font-semibold uppercase tracking-[0.18em] text-mist">
+        <p className="px-2 text-xs font-semibold text-mist">
           Your goals
         </p>
         <div className={compact ? 'mt-2 grid gap-1' : 'mt-2 grid gap-1 overflow-y-auto pr-0.5'}>
@@ -114,10 +114,10 @@ function SidePanel({ onNavigate, compact = false }) {
 
       <div className={`rounded-2xl bg-obsidian p-4 shadow-card ${compact ? '' : 'mt-auto'}`}>
         <div className="flex items-center justify-between">
-          <span className="text-[10px] font-semibold uppercase tracking-[0.18em] text-linen/50">
+          <span className="text-xs font-medium text-linen/65">
             Overall streak
           </span>
-          <Flame className="h-4 w-4 text-linen" aria-hidden="true" />
+          <Flame className="h-4 w-4 text-terracotta fill-current" aria-hidden="true" />
         </div>
         <p className="mt-2 font-display text-3xl leading-none text-linen tabular-nums">
           {overallStreak.current}
@@ -130,6 +130,22 @@ function SidePanel({ onNavigate, compact = false }) {
           Missed days never become overdue debt.
         </p>
       </div>
+
+      {compact && (
+        <div className="mt-1 border-t border-sand pt-3">
+          <button
+            type="button"
+            onClick={async () => {
+              onNavigate?.();
+              await logOut();
+            }}
+            className="flex min-h-[44px] w-full items-center gap-3 rounded-xl px-3 py-2.5 text-sm font-medium text-slate hover:bg-ivory hover:text-ink transition"
+          >
+            <LogOut className="w-4 h-4 shrink-0" aria-hidden="true" />
+            Sign out
+          </button>
+        </div>
+      )}
     </div>
   );
 }
@@ -168,7 +184,7 @@ export default function AppShell() {
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="flex items-center gap-2 border-b border-sand bg-parchment px-4 py-3 sm:gap-3 sm:px-6 lg:px-8">
+          <header className="sticky top-0 z-30 flex items-center gap-2 border-b border-sand bg-parchment px-4 py-3 sm:gap-3 sm:px-6 lg:px-8">
             <button
               type="button"
               onClick={() => setDrawerOpen(true)}
@@ -184,6 +200,16 @@ export default function AppShell() {
               <CalendarDays className="h-4 w-4 shrink-0 text-champagne" aria-hidden="true" />
               <span className="truncate text-[13px] font-medium text-slate">{formatDay(today)}</span>
             </div>
+
+            <Link
+              to="/how-it-works"
+              aria-label="How it works"
+              title="How it works"
+              className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl px-2.5 text-sm font-medium text-slate transition hover:bg-ivory hover:text-ink sm:px-3"
+            >
+              <HelpCircle className="h-4 w-4" aria-hidden="true" />
+              <span className="hidden sm:inline">How it works</span>
+            </Link>
 
             {demoMode && (
               <span className="shrink-0 rounded-full border border-champagne/40 bg-champagne/10 px-2.5 py-1 text-[10px] font-semibold uppercase tracking-wider text-champagne">

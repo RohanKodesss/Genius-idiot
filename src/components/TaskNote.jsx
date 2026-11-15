@@ -69,7 +69,7 @@ export default function TaskNote({ value = '', onSave, compact = false }) {
             type="button"
             onClick={start}
             aria-label="Edit note"
-            className="shrink-0 rounded-lg p-1 text-mist hover:bg-parchment hover:text-ink"
+            className="shrink-0 grid h-7 w-7 place-items-center rounded-lg text-mist hover:bg-parchment hover:text-ink focus-visible:outline-champagne"
           >
             <Pencil className="h-3.5 w-3.5" aria-hidden="true" />
           </button>
@@ -82,7 +82,7 @@ export default function TaskNote({ value = '', onSave, compact = false }) {
     <button
       type="button"
       onClick={start}
-      className="mt-1 inline-flex items-center gap-1.5 text-xs text-mist hover:text-ink"
+      className="mt-1 inline-flex min-h-[32px] items-center gap-1.5 py-1 text-xs text-mist hover:text-ink focus-visible:outline-champagne"
     >
       <StickyNote className="h-3.5 w-3.5" aria-hidden="true" />
       Add note

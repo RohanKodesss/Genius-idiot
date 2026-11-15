@@ -3,54 +3,55 @@
 @tailwind utilities;
 
 @layer base {
-  /* Light theme: white cards on a light gray canvas, forest-green accent. */
+  /* Nordic Minimalist: Soft warm alabaster, crisp obsidian text, arctic fjord blue & copper highlights */
   :root {
     color-scheme: light;
-    --ivory: 244 245 242;
+    --ivory: 247 247 244;
     --parchment: 255 255 255;
-    --sand: 230 231 227;
-    --ink: 22 26 23;
-    --slate: 94 102 97;
-    --mist: 141 148 143;
-    --obsidian: 18 76 54;
-    --champagne: 31 106 76;
-    --champagne-light: 42 124 91;
-    --sage: 62 125 91;
-    --terracotta: 192 106 52;
-    --bordeaux: 168 58 58;
-    /* Always light: text and hairlines on the dark green cards. */
-    --linen: 247 249 245;
-    --shadow-card: 0 1px 2px rgba(18, 76, 54, 0.04), 0 14px 34px -22px rgba(18, 76, 54, 0.2);
+    --sand: 227 229 223;
+    --ink: 21 25 23;
+    --slate: 75 83 78;
+    --mist: 107 115 110;
+    --obsidian: 24 37 44;
+    --champagne: 43 88 118;
+    --champagne-light: 57 110 147;
+    --sage: 61 120 100;
+    --terracotta: 195 100 55;
+    --bordeaux: 192 74 69;
+    /* Always light: text and hairlines on the dark accent surfaces. */
+    --linen: 243 246 244;
+    --shadow-card: 0 1px 3px rgba(21, 25, 23, 0.04), 0 16px 36px -24px rgba(21, 25, 23, 0.16);
     /* Chart colours for SVG attributes and Recharts inline styles. */
-    --chart-grid: #e6e7e3;
-    --chart-tick: #8d948f;
+    --chart-grid: #e3e5df;
+    --chart-tick: #6b736e;
     --chart-surface: #ffffff;
-    --chart-muted: #5e6661;
-    --chart-text: #161a17;
-    --chart-line: #1f6a4c;
+    --chart-muted: #4b534e;
+    --chart-text: #151917;
+    --chart-line: #2b5876;
   }
 
   [data-theme='dark'] {
     color-scheme: dark;
-    --ivory: 14 20 17;
-    --parchment: 22 30 26;
-    --sand: 42 54 47;
-    --ink: 234 240 235;
-    --slate: 166 178 170;
-    --mist: 122 135 127;
-    --obsidian: 23 53 41;
-    --champagne: 74 170 126;
-    --champagne-light: 90 190 145;
-    --sage: 109 185 138;
-    --terracotta: 214 138 92;
-    --bordeaux: 214 106 106;
-    --shadow-card: 0 1px 2px rgba(0, 0, 0, 0.5), 0 14px 34px -18px rgba(0, 0, 0, 0.6);
-    --chart-grid: #2a362f;
-    --chart-tick: #7a877f;
-    --chart-surface: #161e1a;
-    --chart-muted: #a6b2aa;
-    --chart-text: #eaf0eb;
-    --chart-line: #4aaa7e;
+    --ivory: 10 10 10;
+    --parchment: 18 18 18;
+    --sand: 38 38 38;
+    --ink: 255 255 255;
+    --slate: 163 163 163;
+    --mist: 115 115 115;
+    --obsidian: 14 14 14;
+    --champagne: 245 245 245;
+    --champagne-light: 255 255 255;
+    --sage: 74 222 128;
+    --terracotta: 251 146 60;
+    --bordeaux: 248 113 113;
+    --linen: 255 255 255;
+    --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.8), 0 20px 48px -24px rgba(0, 0, 0, 0.95);
+    --chart-grid: #262626;
+    --chart-tick: #737373;
+    --chart-surface: #121212;
+    --chart-muted: #a3a3a3;
+    --chart-text: #ffffff;
+    --chart-line: #f5f5f5;
   }
 
   html {
@@ -60,6 +61,24 @@
   body {
     @apply bg-ivory text-ink font-sans antialiased;
     overflow-wrap: break-word;
+    background-image: radial-gradient(ellipse at 52% -18%, rgba(43, 88, 118, 0.08), transparent 52%);
+    background-attachment: fixed;
+  }
+
+  [data-theme='dark'] body {
+    background-image: radial-gradient(ellipse at 50% -20%, rgba(255, 255, 255, 0.03), transparent 60%);
+  }
+
+  h1,
+  h2,
+  h3,
+  h4,
+  .page-heading {
+    text-wrap: balance;
+  }
+
+  p {
+    text-wrap: pretty;
   }
 
   #root {
@@ -82,15 +101,129 @@
     background: rgb(var(--champagne) / 0.25);
   }
 
+  @keyframes shimmer {
+    0% {
+      transform: translateX(-150%) rotate(25deg);
+    }
+    100% {
+      transform: translateX(150%) rotate(25deg);
+    }
+  }
+
+  @keyframes float {
+    0%,
+    100% {
+      transform: translateY(0px) rotate(0deg);
+    }
+    50% {
+      transform: translateY(-8px) rotate(1deg);
+    }
+  }
+
+  /* Themed caret and accessible scrollbars */
+  input,
+  textarea {
+    caret-color: rgb(var(--champagne));
+  }
+
+  * {
+    scrollbar-width: thin;
+    scrollbar-color: rgb(var(--sand)) transparent;
+  }
+
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+
+  ::-webkit-scrollbar-track {
+    background: transparent;
+  }
+
+  ::-webkit-scrollbar-thumb {
+    background-color: rgb(var(--sand));
+    border-radius: 9999px;
+  }
+
+  ::-webkit-scrollbar-thumb:hover {
+    background-color: rgb(var(--mist) / 0.7);
+  }
+
   @media (prefers-reduced-motion: reduce) {
     *,
     *::before,
     *::after {
-      animation-duration: 0.01ms !important;
+      animation-duration: 0.001ms !important;
       animation-iteration-count: 1 !important;
-      transition-duration: 0.01ms !important;
+      transition-duration: 0.001ms !important;
       scroll-behavior: auto !important;
+      transform: none !important;
     }
+    /* Preserve intentional opacity and color feedback so visual context and focus are not destroyed */
+    .surface-card,
+    .surface-card--interactive,
+    .task-actions,
+    button,
+    a,
+    input,
+    select,
+    textarea {
+      transition-property: opacity, background-color, border-color, color !important;
+      transition-duration: 120ms !important;
+    }
+  }
+}
+
+/* Quiet, consistent motion and surface depth across the app. */
+@layer components {
+  .surface-card,
+  .app-card {
+    @apply border border-sand bg-parchment shadow-card;
+    transition: border-color 180ms ease, box-shadow 180ms ease, transform 180ms ease;
+  }
+
+  .surface-card--interactive:hover,
+  .surface-card--interactive:focus-within {
+    border-color: rgb(var(--champagne) / 0.35);
+    box-shadow: 0 20px 48px -28px rgb(var(--champagne) / 0.3);
+    transform: translateY(-2px);
+  }
+
+  .app-card {
+    border-radius: 1.25rem;
+  }
+
+  .page-heading {
+    @apply font-display tracking-tight text-ink;
+    font-size: clamp(2rem, 2.7vw, 3rem);
+    line-height: 1.08;
+  }
+
+  .landing-sections {
+    background-color: rgb(var(--ivory));
+    background-image: radial-gradient(rgb(var(--mist) / 0.1) 0.7px, transparent 0.7px);
+    background-size: 24px 24px;
+  }
+
+  .landing-section {
+    width: 100%;
+    max-width: none;
+    padding-inline: clamp(1rem, 4vw, 3rem);
+    scroll-margin-top: 5rem;
+    background-image: none;
+  }
+
+  .landing-section > * {
+    width: min(100%, 64rem);
+    margin-inline: auto;
+  }
+
+  .landing-section--soft {
+    background-color: rgb(var(--parchment) / 0.36);
+  }
+
+  .landing-section--tint {
+    background-color: rgb(var(--champagne) / 0.035);
   }
 }
 

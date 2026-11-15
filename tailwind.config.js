@@ -22,8 +22,9 @@ export default {
         linen: 'rgb(var(--linen) / <alpha-value>)', // always-light text on dark cards
       },
       fontFamily: {
-        display: ['Fraunces', 'Georgia', 'serif'],
-        sans: ['Inter', 'system-ui', 'sans-serif'],
+        display: ['"Instrument Serif"', 'Georgia', 'serif'],
+        sans: ['"DM Sans"', 'system-ui', 'sans-serif'],
+        mono: ['"Space Mono"', 'ui-monospace', 'monospace'],
       },
       borderRadius: {
         xl: '0.75rem',

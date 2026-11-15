@@ -11,7 +11,7 @@ const shortDay = (day) => format(fromDay(day), 'EEEEE');
 
 function Stat({ icon: Icon, label, value, suffix, hint }) {
   return (
-    <div className="rounded-2xl border border-sand bg-parchment p-5 shadow-card">
+    <div className="surface-card rounded-2xl p-5">
       <div className="flex items-start justify-between gap-3">
         <p className="text-[12px] font-medium text-slate">{label}</p>
         <span className="grid h-8 w-8 place-items-center rounded-full bg-ivory text-champagne">
@@ -86,14 +86,11 @@ export default function Today() {
     <div>
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
-          <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-mist">
-            Your day
-          </p>
-          <h1 className="mt-2 font-display text-3xl font-medium tracking-tight text-ink sm:text-4xl">
+          <h1 className="font-display text-3xl font-medium tracking-tight text-ink sm:text-4xl">
             Today
           </h1>
           <p className="mt-2 text-sm text-slate">
-            {format(fromDay(today), 'EEEE, MMMM d')} · No overdue debt, ever.
+            {format(fromDay(today), 'EEEE, MMMM d')} · A little progress goes a long way.
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
