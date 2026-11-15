@@ -1,4 +1,5 @@
-import { Link } from 'react-router-dom';
+import { useState } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import {
   ArrowRight,
   CalendarClock,
@@ -12,6 +13,8 @@ import {
   TriangleAlert,
 } from 'lucide-react';
 import { Badge, Button, Card } from '../components/ui';
+import { useApp } from '../context/AppContext';
+import { hasSeenGuide, markGuideSeen } from '../lib/guide';
 
 // A plain-language guide for someone who just signed up. No state, no data:
 // it explains the model, not the user's numbers.
@@ -62,6 +65,17 @@ const facts = [
 ];
 
 export default function HowItWorks() {
+  const { authUser } = useApp();
+  const navigate = useNavigate();
+  // The gate opens after this is set; AuthGuard re-checks it on the next route.
+  const [read, setRead] = useState(() => hasSeenGuide(authUser?.id));
+
+  const confirm = () => {
+    if (authUser?.id) markGuideSeen(authUser.id);
+    setRead(true);
+    navigate('/', { replace: true });
+  };
+
   return (
     <div className="grid gap-8">
       <header>
@@ -173,17 +187,35 @@ export default function HowItWorks() {
         </Card>
       </section>
 
-      <div className="flex flex-wrap items-center gap-3">
-        <Link to="/">
-          <Button>
-            Go to today
+      {read ? (
+        <div className="flex flex-wrap items-center gap-3">
+          <Link to="/">
+            <Button>
+              Go to today
+              <ArrowRight className="w-4 h-4" aria-hidden="true" />
+            </Button>
+          </Link>
+          <Link
+            to="/setup"
+            className="text-sm text-slate hover:text-ink underline underline-offset-4"
+          >
+            Add another goal
+          </Link>
+        </div>
+      ) : (
+        <div className="flex flex-wrap items-center justify-between gap-4 rounded-2xl border border-champagne/40 bg-champagne/10 p-5">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-ink">Read it? This screen only appears once.</p>
+            <p className="mt-1 text-xs text-slate">
+              Mark it as read to continue — you can reopen it any time from the menu.
+            </p>
+          </div>
+          <Button onClick={confirm}>
+            Mark as read and continue
             <ArrowRight className="w-4 h-4" aria-hidden="true" />
           </Button>
-        </Link>
-        <Link to="/setup" className="text-sm text-slate hover:text-ink underline underline-offset-4">
-          Add another goal
-        </Link>
-      </div>
+        </div>
+      )}
     </div>
   );
 }
