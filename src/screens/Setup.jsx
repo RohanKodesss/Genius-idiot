@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { CheckCircle2, HelpCircle, Plus } from 'lucide-react';
 import { useApp } from '../context/AppContext';
@@ -9,6 +9,7 @@ import TaskCardBuilder from '../components/TaskCardBuilder';
 import QuickImport from '../components/QuickImport';
 import ThemeToggle from '../components/ThemeToggle';
 import { skipSetup } from '../lib/setupGate';
+import TemplateGallery from '../components/TemplateGallery';
 
 // Onboarding: create goals, import a roadmap for each, then continue.
 export default function Setup() {
@@ -19,6 +20,12 @@ export default function Setup() {
   const [selected, setSelected] = useState(goals[0]?.id ?? null);
   const [method, setMethod] = useState('cards');
   const [busy, setBusy] = useState(false);
+
+  useEffect(() => {
+    if (window.location.hash === '#templates') {
+      document.getElementById('templates')?.scrollIntoView({ block: 'start' });
+    }
+  }, []);
 
   const selectedGoal = goals.find((goal) => goal.id === selected) ?? goals[0];
   const taskCount = (goalId) => tasksByGoal[goalId]?.length ?? 0;
@@ -111,6 +118,8 @@ export default function Setup() {
             </Button>
           </form>
         </Card>
+
+        <TemplateGallery className="mt-8" />
 
         {goals.length > 0 && (
           <Card className="mt-6">

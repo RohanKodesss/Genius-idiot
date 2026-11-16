@@ -1,11 +1,14 @@
-import { format } from 'date-fns';
-import { CheckCircle2, ChevronRight, Flame, ListChecks, Plus, ArrowUpRight, Timer } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { useEffect, useRef } from 'react';
+import { format, getDay } from 'date-fns';
+import { CheckCircle2, ChevronRight, Flame, ListChecks, Plus, ArrowUpRight, Timer, Shuffle } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
 import { useApp } from '../context/AppContext';
 import { addDay, dayOf, fromDay, formatDay } from '../lib/dates';
+import { missedYesterdayCount } from '../lib/missedDay';
 import { Button, Card, EmptyState, Skeleton } from '../components/ui';
 import GoalCard from '../components/GoalCard';
 import ProgressRing from '../components/ProgressRing';
+import TemplateGallery from '../components/TemplateGallery';
 
 const shortDay = (day) => format(fromDay(day), 'EEEEE');
 
@@ -28,9 +31,12 @@ function Stat({ icon: Icon, label, value, suffix, hint }) {
 }
 
 export default function Today() {
+  const navigate = useNavigate();
+  const checkedMissedDayRef = useRef(null);
   const {
     loading,
     today,
+    authUser,
     goals,
     totals,
     overallStreak,
@@ -39,7 +45,32 @@ export default function Today() {
     projectionByGoal,
     streaksByGoal,
     progressByGoal,
+    shiftHistoryByGoal,
+    reorderTask,
+    notify,
   } = useApp();
+
+  useEffect(() => {
+    if (loading) return;
+    const visitKey = `gi:missed-day:${authUser?.id ?? 'demo'}`;
+    if (checkedMissedDayRef.current === today) return;
+    checkedMissedDayRef.current = today;
+
+    try {
+      if (localStorage.getItem(visitKey) === today) return;
+      localStorage.setItem(visitKey, today);
+    } catch {
+      // Keep the reassurance usable when browser storage is disabled.
+    }
+
+    const missed = missedYesterdayCount(goals, tasksByGoal, restDaysByGoal, addDay(today, -1));
+    if (missed > 0) {
+      notify(
+        'You missed yesterday. We slid your queue forward by 1 day. No overdue debt, just a new finish date.',
+        'info',
+      );
+    }
+  }, [loading, today, authUser?.id, goals, tasksByGoal, restDaysByGoal, notify]);
 
   const doneToday = (goalId) =>
     (tasksByGoal[goalId] ?? []).find((task) => dayOf(task.completed_at) === today) ?? null;
@@ -66,7 +97,56 @@ export default function Today() {
 
   const focus = nextUp.find((row) => !row.restToday && row.task.projected === today);
 
+  const pickRandomTask = async () => {
+    const candidates = goals.flatMap((goal) => {
+      const restToday = (restDaysByGoal[goal.id] ?? []).some((restDay) => restDay.date === today);
+      if (restToday) return [];
+      const queue = [...(tasksByGoal[goal.id] ?? [])].sort((a, b) => a.order - b.order);
+      const firstPendingIndex = queue.findIndex((task) => !task.completed_at);
+      if (firstPendingIndex < 0) return [];
+      return queue
+        .slice(firstPendingIndex)
+        .filter((task) => !task.completed_at)
+        .map((task) => ({ goal, task, targetOrder: firstPendingIndex + 1 }));
+    });
+
+    if (!candidates.length) {
+      notify('Nothing queued to pick right now. Rest days are part of the plan.', 'info');
+      return;
+    }
+
+    const choice = candidates[Math.floor(Math.random() * candidates.length)];
+    const result = await reorderTask(choice.task.id, choice.targetOrder);
+    if (!result?.ok) return;
+    notify(`Picked “${choice.task.title}” for ${choice.goal.name}. It’s today’s task.`, 'success');
+    navigate(`/goal/${choice.goal.id}`);
+  };
+
   const allDone = goals.length > 0 && totals.goalsTotal > 0 && totals.goalsDone === totals.goalsTotal;
+  const hour = new Date().getHours();
+  const greeting = hour >= 5 && hour < 12
+    ? 'Good morning'
+    : hour >= 12 && hour < 17
+      ? 'Good afternoon'
+      : hour >= 17 && hour < 21
+        ? 'Good evening'
+        : 'Late night session?';
+  const weekStart = addDay(today, -getDay(fromDay(today)));
+  const sundayReview = getDay(fromDay(today)) === 0;
+  const completedThisWeek = allTasks.filter((task) => {
+    const completedDay = dayOf(task.completed_at);
+    return completedDay && completedDay >= weekStart && completedDay <= today;
+  }).length;
+  const shiftedThisWeek = goals.reduce((total, goal) => {
+    const history = shiftHistoryByGoal[goal.id] ?? [];
+    const points = history.filter(
+      (point) => point.date >= addDay(weekStart, -1) && point.date <= today,
+    );
+    return total + points.slice(1).filter(
+      (point, index) => point.date >= weekStart && point.shift > points[index].shift,
+    ).length;
+  }, 0);
+  const nextMilestone = [...nextUp].sort((a, b) => a.task.projected.localeCompare(b.task.projected))[0];
 
   if (loading) {
     return (
@@ -87,13 +167,25 @@ export default function Today() {
       <header className="flex flex-wrap items-end justify-between gap-4">
         <div>
           <h1 className="font-display text-3xl font-medium tracking-tight text-ink sm:text-4xl">
-            Today
+            {greeting}
           </h1>
           <p className="mt-2 text-sm text-slate">
-            {format(fromDay(today), 'EEEE, MMMM d')} · A little progress goes a long way.
+            {format(fromDay(today), 'EEEE, MMMM d')} ·{' '}
+            {focus
+              ? `Here’s your ${focus.goal.daily_minutes}-minute task: ${focus.task.title}.`
+              : 'A little progress goes a long way.'}
           </p>
         </div>
         <div className="flex flex-wrap items-center gap-2">
+          <Button variant="secondary" onClick={pickRandomTask}>
+            <Shuffle className="h-4 w-4" aria-hidden="true" />
+            I’m bored — pick a task
+          </Button>
+          {focus && (
+            <Link to={`/goal/${focus.goal.id}?focus=start`}>
+              <Button variant="secondary">Start focus session</Button>
+            </Link>
+          )}
           <Link to="/setup">
             <Button>
               <Plus className="h-4 w-4" aria-hidden="true" />
@@ -135,19 +227,22 @@ export default function Today() {
       </div>
 
       {goals.length === 0 ? (
-        <div className="mt-6 rounded-2xl border border-sand bg-parchment shadow-card">
-          <EmptyState
-            headline="No goals yet"
-            helper="Create a goal and import its roadmap to see today's task."
-            action={
-              <Link to="/setup">
-                <Button>
-                  <Plus className="h-4 w-4" aria-hidden="true" />
-                  Set up a goal
-                </Button>
-              </Link>
-            }
-          />
+        <div className="mt-6">
+          <div className="rounded-2xl border border-sand bg-parchment shadow-card">
+            <EmptyState
+              headline="No goals yet"
+              helper="Create a goal and import its roadmap to see today's task."
+              action={
+                <Link to="/setup">
+                  <Button>
+                    <Plus className="h-4 w-4" aria-hidden="true" />
+                    Set up a goal
+                  </Button>
+                </Link>
+              }
+            />
+          </div>
+          <TemplateGallery className="mt-8" />
         </div>
       ) : (
         <div className="mt-6 grid gap-6 2xl:grid-cols-3">
@@ -266,6 +361,24 @@ export default function Today() {
                 </ul>
               )}
             </Card>
+
+            {sundayReview && (
+              <Card>
+                <p className="text-[10px] font-semibold uppercase tracking-[0.16em] text-champagne">
+                  Sunday review
+                </p>
+                <h2 className="mt-2 font-display text-xl text-ink">A week of showing up</h2>
+                <p className="mt-3 text-sm leading-relaxed text-slate">
+                  You completed {completedThisWeek} task{completedThisWeek === 1 ? '' : 's'} this week.
+                  {' '}Your queue shifted {shiftedThisWeek} time{shiftedThisWeek === 1 ? '' : 's'}.
+                </p>
+                <p className="mt-3 rounded-xl bg-ivory px-3 py-2.5 text-sm text-ink">
+                  {nextMilestone
+                    ? <>Next milestone: <span className="font-medium">{nextMilestone.task.title}</span> · {format(fromDay(nextMilestone.task.projected), 'EEEE')}.</>
+                    : 'All roadmap tasks are complete. Enjoy the pause.'}
+                </p>
+              </Card>
+            )}
 
             <Card>
               <div className="flex items-baseline justify-between gap-3">

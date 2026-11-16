@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { Link, NavLink, Outlet, useLocation, useNavigate } from 'react-router-dom';
 import {
   CalendarDays,
+  BookOpen,
   Flame,
   HelpCircle,
   LayoutDashboard,
@@ -209,6 +210,16 @@ export default function AppShell() {
             >
               <HelpCircle className="h-4 w-4" aria-hidden="true" />
               <span className="hidden sm:inline">How it works</span>
+            </Link>
+
+            <Link
+              to="/setup#templates"
+              aria-label="Roadmap templates"
+              title="Roadmap templates"
+              className="inline-flex min-h-11 shrink-0 items-center gap-2 rounded-xl px-2.5 text-sm font-medium text-slate transition hover:bg-ivory hover:text-ink sm:px-3"
+            >
+              <BookOpen className="h-4 w-4" aria-hidden="true" />
+              <span className="hidden sm:inline">Templates</span>
             </Link>
 
             {demoMode && (

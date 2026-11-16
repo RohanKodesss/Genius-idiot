@@ -13,6 +13,7 @@ import { computeProjection, computeShiftHistory, maxShift } from '../lib/project
 import { computeOverallStreak, computeStreak } from '../lib/streaks';
 import { buildHeatmap } from '../lib/heatmap';
 import { computeProgress, computeTodayTotals } from '../lib/progress';
+import { mapTemplateToRows } from '../lib/templateParser';
 
 const AppContext = createContext(null);
 const EMPTY = { goals: [], tasks: [], restDays: [] };
@@ -283,6 +284,37 @@ export function AppProvider({ children }) {
     return { ...res, data: goal };
   };
 
+  const createGoalFromTemplate = async (template) => {
+    const createdAt = new Date().toISOString();
+    const { goal, tasks } = mapTemplateToRows(template, {
+      goalId: uuid(),
+      userId: authUser?.id,
+      today,
+      createdAt,
+      taskIds: template.tasks.map(() => uuid()),
+    });
+
+    const goalResult = await repo.createGoal(goal);
+    if (!goalResult.ok) {
+      notify(explainSaveFailure(goalResult, "Couldn't create this roadmap. Try again."), 'error');
+      return goalResult;
+    }
+
+    const taskResult = await repo.importTasks(tasks);
+    if (!taskResult.ok) {
+      await repo.deleteGoal(goal.id);
+      notify(explainSaveFailure(taskResult, "Couldn't add the template tasks. Try again."), 'error');
+      return taskResult;
+    }
+
+    setData((current) => ({
+      ...current,
+      goals: [...current.goals, goal],
+      tasks: [...current.tasks, ...tasks],
+    }));
+    return { ok: true, data: goal };
+  };
+
   const updateGoal = async (goalId, patch) => {
     const original = data.goals.find((goal) => goal.id === goalId);
     if (!original) return;
@@ -420,6 +452,7 @@ export function AppProvider({ children }) {
       notify(explainSaveFailure(res, "Couldn't reorder. Try again."), 'error');
       reload();
     }
+    return res;
   };
 
   const markRestDay = async (goalId, date) => {
@@ -545,6 +578,7 @@ export function AppProvider({ children }) {
     completeTask,
     undoTask,
     addGoal,
+    createGoalFromTemplate,
     updateGoal,
     deleteGoal,
     importRoadmap,

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Link, useParams } from 'react-router-dom';
+import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ArrowLeft, CalendarDays, ExternalLink, Flame, Moon, Target } from 'lucide-react';
 import { useApp } from '../context/AppContext';
@@ -30,6 +30,7 @@ function MiniStat({ icon: Icon, label, value, hint }) {
 
 export default function GoalDashboard() {
   const { goalId } = useParams();
+  const [searchParams] = useSearchParams();
   const {
     goals,
     today,
@@ -168,6 +169,7 @@ export default function GoalDashboard() {
             <GoalTimer
               goal={goal}
               task={todayTask}
+              autoStart={searchParams.get('focus') === 'start'}
               onFinish={(minutes) => completeTask(todayTask.id, minutes)}
             />
           </div>
