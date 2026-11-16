@@ -173,7 +173,7 @@ export default function Landing() {
       </header>
 
       {/* Hero Section — ParticleWave as immersive background */}
-      <section className="relative mx-auto flex min-h-[calc(100svh-72px)] max-w-5xl flex-col justify-center px-4 py-12 text-center sm:px-6 sm:py-16 lg:px-8">
+      <section className="relative mx-auto flex min-h-[100svh] max-w-5xl flex-col justify-center px-4 py-12 text-center sm:px-6 sm:py-16 lg:px-8">
         {/* Full-bleed particle wave behind hero content */}
         <div
           aria-hidden="true"

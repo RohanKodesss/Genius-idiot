@@ -203,36 +203,38 @@
   }
 
   .landing-sections {
-    --ivory: 0 0 0;
-    --parchment: 16 16 16;
-    --sand: 48 48 48;
-    --ink: 248 248 248;
-    --slate: 186 186 186;
-    --mist: 144 144 144;
-    --champagne: 245 245 245;
-    --champagne-light: 255 255 255;
-    --sage: 116 201 150;
-    --terracotta: 242 156 103;
-    --bordeaux: 248 113 113;
-    --linen: 248 248 248;
-    --landing-canvas: 0 0 0;
-    background: linear-gradient(to bottom, #0a0a0a 0, #000 14rem);
+    background: linear-gradient(to bottom, rgb(var(--ivory)), rgb(var(--landing-canvas)) 24rem);
     color: rgb(var(--ink));
   }
 
   .welcome-header {
-    --ivory: 0 0 0;
-    --parchment: 0 0 0;
-    --sand: 48 48 48;
-    --ink: 248 248 248;
-    --slate: 186 186 186;
-    --mist: 144 144 144;
-    --champagne: 245 245 245;
-    --champagne-light: 255 255 255;
-    background-color: rgba(0, 0, 0, 0.92);
-    background-image: radial-gradient(rgba(255, 255, 255, 0.24) 0.7px, transparent 0.8px);
-    background-size: 22px 22px;
+    position: sticky;
+    top: 0.75rem;
+    width: min(calc(100% - 2rem), 80rem);
+    margin: 0.75rem auto -7rem;
+    overflow: hidden;
+    border: 1px solid rgb(var(--sand) / 0.72);
+    border-radius: 999px;
+    background-color: rgb(var(--parchment) / 0.76);
+    -webkit-backdrop-filter: blur(24px) saturate(1.35);
+    backdrop-filter: blur(24px) saturate(1.35);
+    box-shadow: 0 10px 32px rgb(0 0 0 / 0.08);
     color: rgb(var(--ink));
+  }
+
+  [data-theme='dark'] .welcome-header {
+    background-color: rgb(16 16 16 / 0.76);
+    box-shadow: 0 10px 32px rgb(0 0 0 / 0.24);
+  }
+
+  [data-theme='light'] .welcome-header {
+    background-color: rgb(255 255 255 / 0.72);
+  }
+
+  @media (min-width: 1024px) {
+    .welcome-header {
+      margin-bottom: -5.5rem;
+    }
   }
 
   .landing-section {
