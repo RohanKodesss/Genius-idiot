@@ -163,12 +163,12 @@ export default function Landing() {
             )}
           </div>
         </div>
-        <nav aria-label="Page sections" className="welcome-section-nav flex flex-wrap justify-center gap-x-1 gap-y-0 px-2 pb-2 pt-0 text-xs font-medium text-slate lg:hidden">
-          <a href="#simulator" className="inline-flex min-h-10 items-center rounded-full px-3 transition hover:bg-ivory hover:text-ink">Simulator</a>
-          <a href="#workflow" className="inline-flex min-h-10 items-center rounded-full px-3 transition hover:bg-ivory hover:text-ink">How it works</a>
-          <a href="#curriculum" className="inline-flex min-h-10 items-center rounded-full px-3 transition hover:bg-ivory hover:text-ink">Roadmaps</a>
-          <a href="#comparison" className="inline-flex min-h-10 items-center rounded-full px-3 transition hover:bg-ivory hover:text-ink">Why it works</a>
-          <a href="#faq" className="inline-flex min-h-10 items-center rounded-full px-3 transition hover:bg-ivory hover:text-ink">FAQ</a>
+        <nav aria-label="Page sections" className="welcome-section-nav flex gap-1.5 overflow-x-auto px-2 pb-2 pt-0 text-xs font-medium text-slate lg:hidden sm:justify-center sm:gap-2">
+          <a href="#simulator" className="shrink-0 rounded-full px-3 py-1.5 transition hover:bg-ivory hover:text-ink">Simulator</a>
+          <a href="#workflow" className="shrink-0 rounded-full px-3 py-1.5 transition hover:bg-ivory hover:text-ink">How it works</a>
+          <a href="#curriculum" className="shrink-0 rounded-full px-3 py-1.5 transition hover:bg-ivory hover:text-ink">Roadmaps</a>
+          <a href="#comparison" className="shrink-0 rounded-full px-3 py-1.5 transition hover:bg-ivory hover:text-ink">Why it works</a>
+          <a href="#faq" className="shrink-0 rounded-full px-3 py-1.5 transition hover:bg-ivory hover:text-ink">FAQ</a>
         </nav>
       </header>
 
