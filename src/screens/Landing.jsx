@@ -6,6 +6,10 @@ import {
   CheckCircle2,
   ChevronDown,
   Code2,
+  Github,
+  Linkedin,
+  Mail,
+  MessageCircle,
   PenTool,
   RotateCcw,
   Sparkles,
@@ -100,9 +104,9 @@ export default function Landing() {
   const selectedPreset = PRESETS.find((p) => p.id === activePreset) ?? PRESETS[0];
 
   return (
-    <div className="min-h-screen bg-ivory text-ink selection:bg-champagne/20">
+    <div className="welcome-page min-h-screen bg-ivory text-ink selection:bg-champagne/20">
       {/* Navigation Header */}
-      <header className="sticky top-0 z-40 border-b border-sand/80 bg-parchment/90 backdrop-blur-xl">
+      <header className="welcome-header sticky top-0 z-40 border-b border-sand/80 bg-parchment/90 backdrop-blur-xl">
         <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
           <Link to="/welcome" className="flex items-center gap-2.5 sm:gap-3 group">
             <motion.span
@@ -653,6 +657,40 @@ export default function Landing() {
             </div>
           </SpotlightCard>
         </ScrollReveal>
+      </section>
+      <section id="developer" className="landing-section developer-section py-20 sm:py-28">
+        <div className="developer-layout">
+          <motion.div
+            className="developer-portrait"
+            initial={{ opacity: 0, scale: 0.94, y: 20 }}
+            whileInView={{ opacity: 1, scale: 1, y: 0 }}
+            viewport={{ once: true, amount: 0.3 }}
+            transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
+          >
+            <div className="developer-orbit" aria-hidden="true" />
+            <img src="/siddiq.png" alt="Siddiq, developer of Genius Idiot" loading="lazy" />
+            <span className="developer-coordinate" aria-hidden="true">IN · BUILDING WITH INTENT</span>
+          </motion.div>
+          <motion.div
+            className="developer-copy"
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.25 }}
+            variants={{ hidden: {}, visible: { transition: { staggerChildren: 0.11, delayChildren: 0.08 } } }}
+          >
+            <motion.p className="developer-kicker" variants={{ hidden: { opacity: 0, y: 12 }, visible: { opacity: 1, y: 0 } }}>A note from the builder</motion.p>
+            <motion.h2 className="font-display" variants={{ hidden: { opacity: 0, y: 18 }, visible: { opacity: 1, y: 0 } }}>Meet the developer</motion.h2>
+            <motion.p className="developer-bio" variants={{ hidden: { opacity: 0, y: 16 }, visible: { opacity: 1, y: 0 } }}>
+              I’m Siddiq. I built Genius Idiot to make showing up for your goals feel lighter: one honest task at a time, without a backlog waiting to punish you.
+            </motion.p>
+            <motion.div className="developer-links" variants={{ hidden: { opacity: 0, y: 14 }, visible: { opacity: 1, y: 0 } }}>
+              <a href="https://www.linkedin.com/in/siddiq-dev/" target="_blank" rel="noreferrer"><Linkedin aria-hidden="true" />LinkedIn</a>
+              <a href="https://github.com/SidhCodez" target="_blank" rel="noreferrer"><Github aria-hidden="true" />GitHub</a>
+              <a href="mailto:siddiq080806@gmail.com"><Mail aria-hidden="true" />Email</a>
+              <a href="https://discord.com/users/sidhdev" target="_blank" rel="noreferrer"><MessageCircle aria-hidden="true" />Discord <span className="developer-handle">sidhdev</span></a>
+            </motion.div>
+          </motion.div>
+        </div>
       </section>
       </main>
 
