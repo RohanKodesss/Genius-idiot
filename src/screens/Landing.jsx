@@ -111,16 +111,16 @@ export default function Landing() {
     <div className="welcome-page min-h-screen bg-ivory text-ink selection:bg-champagne/20">
       {/* Navigation Header */}
       <header className="welcome-header sticky top-0 z-40 border-b border-sand/80 bg-parchment/90 backdrop-blur-xl">
-        <div className="mx-auto flex max-w-6xl items-center justify-between px-4 py-3.5 sm:px-6 lg:px-8">
-          <Link to="/welcome" className="flex items-center gap-2.5 sm:gap-3 group">
+        <div className="mx-auto flex max-w-6xl items-center justify-between gap-2 px-3 py-2 sm:px-6 sm:py-3.5 lg:px-8">
+          <Link to="/welcome" className="group flex min-w-0 shrink items-center gap-2 sm:gap-3">
             <motion.span
               whileHover={{ rotate: 12, scale: 1.08 }}
               transition={{ type: 'spring', stiffness: 400, damping: 17 }}
-              className="grid h-9 w-9 place-items-center overflow-hidden rounded-xl bg-white shadow-card sm:h-10 sm:w-10"
+              className="grid h-9 w-9 shrink-0 place-items-center overflow-hidden rounded-xl bg-white shadow-card sm:h-10 sm:w-10"
             >
               <BrandLogo className="h-full w-full" />
             </motion.span>
-            <span className="font-display text-xl sm:text-2xl tracking-tight text-ink">Genius Idiot</span>
+            <span className="truncate font-display text-lg tracking-tight text-ink sm:text-2xl">Genius Idiot</span>
           </Link>
 
           <nav className="hidden lg:flex items-center gap-6 text-sm font-medium text-slate">
@@ -131,14 +131,14 @@ export default function Landing() {
             <a href="#faq" className="hover:text-ink transition">FAQ</a>
           </nav>
 
-          <div className="flex items-center gap-2 sm:gap-3">
-            <ThemeToggle />
+          <div className="flex shrink-0 items-center gap-1 sm:gap-3">
+            <ThemeToggle className="h-10 w-10 sm:h-11 sm:w-11 lg:h-9 lg:w-9" />
             {authUser ? (
               <motion.button
                 whileHover={{ scale: 1.03 }}
                 whileTap={{ scale: 0.97 }}
                 onClick={() => navigate('/')}
-                className="inline-flex min-h-11 items-center justify-center gap-2 rounded-xl bg-champagne px-4 sm:px-5 py-2.5 text-sm font-semibold text-parchment hover:bg-champagne-light transition shadow-sm"
+                  className="inline-flex min-h-10 items-center justify-center gap-1.5 rounded-xl bg-champagne px-3 sm:min-h-11 sm:gap-2 sm:px-5 sm:py-2.5 text-xs font-semibold text-parchment shadow-sm transition hover:bg-champagne-light sm:text-sm"
               >
                 <span>Workspace</span> <ArrowRight className="h-4 w-4" />
               </motion.button>
@@ -154,7 +154,7 @@ export default function Landing() {
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
                   onClick={() => navigate('/login?mode=login')}
-                  className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl bg-champagne px-4 sm:px-5 py-2 text-sm font-semibold text-parchment hover:bg-champagne-light transition shadow-sm"
+                  className="inline-flex min-h-10 items-center justify-center gap-1 rounded-xl bg-champagne px-3 sm:min-h-11 sm:gap-1.5 sm:px-5 sm:py-2 text-xs font-semibold text-parchment shadow-sm transition hover:bg-champagne-light sm:text-sm"
                 >
                   <span>Log in</span>
                   <ArrowRight className="h-4 w-4" />
@@ -163,12 +163,12 @@ export default function Landing() {
             )}
           </div>
         </div>
-        <nav aria-label="Page sections" className="flex gap-5 overflow-x-auto border-t border-sand/70 px-4 py-2.5 text-xs font-medium text-slate lg:hidden sm:justify-center sm:gap-7 sm:text-sm">
-          <a href="#simulator" className="shrink-0 hover:text-ink transition">Simulator</a>
-          <a href="#workflow" className="shrink-0 hover:text-ink transition">How it works</a>
-          <a href="#curriculum" className="shrink-0 hover:text-ink transition">Roadmaps</a>
-          <a href="#comparison" className="shrink-0 hover:text-ink transition">Why it works</a>
-          <a href="#faq" className="shrink-0 hover:text-ink transition">FAQ</a>
+        <nav aria-label="Page sections" className="welcome-section-nav flex gap-1.5 overflow-x-auto px-2 pb-2 pt-0 text-xs font-medium text-slate lg:hidden sm:justify-center sm:gap-2">
+          <a href="#simulator" className="shrink-0 rounded-full px-3 py-1.5 transition hover:bg-ivory hover:text-ink">Simulator</a>
+          <a href="#workflow" className="shrink-0 rounded-full px-3 py-1.5 transition hover:bg-ivory hover:text-ink">How it works</a>
+          <a href="#curriculum" className="shrink-0 rounded-full px-3 py-1.5 transition hover:bg-ivory hover:text-ink">Roadmaps</a>
+          <a href="#comparison" className="shrink-0 rounded-full px-3 py-1.5 transition hover:bg-ivory hover:text-ink">Why it works</a>
+          <a href="#faq" className="shrink-0 rounded-full px-3 py-1.5 transition hover:bg-ivory hover:text-ink">FAQ</a>
         </nav>
       </header>
 
