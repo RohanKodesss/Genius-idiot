@@ -150,8 +150,8 @@ export default function Today() {
           />
         </div>
       ) : (
-        <div className="mt-6 grid gap-6 lg:grid-cols-3">
-          <section className="min-w-0 lg:col-span-2">
+        <div className="mt-6 grid gap-6 2xl:grid-cols-3">
+          <section className="min-w-0 2xl:col-span-2">
             <div className="flex items-end justify-between gap-3">
               <div>
                 <h2 className="font-display text-2xl text-ink">Today's queue</h2>
@@ -173,7 +173,7 @@ export default function Today() {
               </div>
             )}
 
-            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-1 xl:grid-cols-2">
+            <div className="mt-4 grid gap-4 sm:grid-cols-2 lg:grid-cols-1 2xl:grid-cols-2">
               {goals.map((goal) => (
                 <GoalCard
                   key={goal.id}

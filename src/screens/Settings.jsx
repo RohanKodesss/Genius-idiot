@@ -165,7 +165,7 @@ export default function Settings() {
             variant="secondary"
             onClick={async () => {
               await logOut();
-              navigate('/login');
+              navigate('/login?mode=login');
             }}
           >
             <LogOut className="w-4 h-4" aria-hidden="true" />

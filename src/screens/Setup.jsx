@@ -8,6 +8,7 @@ import MarkdownImporter from '../components/MarkdownImporter';
 import TaskCardBuilder from '../components/TaskCardBuilder';
 import QuickImport from '../components/QuickImport';
 import ThemeToggle from '../components/ThemeToggle';
+import { skipSetup } from '../lib/setupGate';
 
 // Onboarding: create goals, import a roadmap for each, then continue.
 export default function Setup() {
@@ -55,7 +56,7 @@ export default function Setup() {
 
   return (
     <main className="min-h-[100dvh] bg-ivory px-4 py-8 sm:px-6 sm:py-10 lg:py-14">
-      <div className="mx-auto w-full">
+      <div className="mx-auto w-full max-w-5xl">
         <div className="flex items-start justify-between gap-3">
           <div className="flex min-w-0 items-center gap-2 font-display text-xl tracking-tight text-ink sm:text-2xl">
             <BrandLogo className="h-9 w-9 rounded-lg bg-white" />
@@ -79,7 +80,7 @@ export default function Setup() {
           <HelpCircle className="w-3.5 h-3.5" aria-hidden="true" />
           New here? See how it works
         </Link>
-        <h1 className="mt-6 font-display text-2xl text-ink sm:text-3xl">Set up your library</h1>
+        <h1 className="mt-6 font-display text-3xl text-ink sm:text-4xl">Set up your library</h1>
         <p className="mt-2 text-sm text-slate max-w-xl">
           One goal, one queue. Create a goal and import its roadmap — one task per day, no
           deadlines. You can add more goals later.
@@ -150,7 +151,7 @@ export default function Setup() {
                 <div
                   role="tablist"
                   aria-label="Roadmap entry method"
-                  className="mb-5 grid w-full grid-cols-3 gap-1 rounded-xl border border-sand bg-ivory p-1 sm:inline-flex sm:w-auto"
+                  className="mb-5 grid w-full grid-cols-1 gap-1 rounded-xl border border-sand bg-ivory p-1 sm:inline-flex sm:w-auto"
                 >
                   {[
                     { id: 'cards', label: 'Card builder' },
@@ -163,7 +164,7 @@ export default function Setup() {
                       type="button"
                       aria-selected={method === tab.id}
                       onClick={() => setMethod(tab.id)}
-                      className={`min-h-[44px] whitespace-nowrap rounded-lg px-1 py-1.5 text-[11px] transition lg:min-h-0 sm:px-3 sm:text-sm ${
+                      className={`min-h-[44px] whitespace-nowrap rounded-lg px-3 py-2 text-sm transition ${
                         method === tab.id
                           ? 'bg-sand text-ink'
                           : 'text-slate hover:text-ink'

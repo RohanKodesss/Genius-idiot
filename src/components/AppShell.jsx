@@ -177,8 +177,8 @@ export default function AppShell() {
   useFocusTrap(drawerOpen, drawerRef, close);
 
   return (
-    <div className="min-h-screen bg-parchment">
-      <div className="mx-auto flex min-h-screen w-full max-w-[1800px] flex-col bg-parchment sm:flex-row">
+    <div className="min-h-screen w-full bg-parchment">
+      <div className="flex min-h-screen w-full flex-col bg-parchment sm:flex-row">
         <aside className="hidden w-64 shrink-0 flex-col border-r border-sand bg-parchment p-5 lg:flex xl:w-[272px]">
           <SidePanel />
         </aside>
@@ -230,7 +230,7 @@ export default function AppShell() {
                 type="button"
                 onClick={async () => {
                   await logOut();
-                  navigate('/login');
+                  navigate('/login?mode=login');
                 }}
                 aria-label="Log out"
                 className="hidden h-9 w-9 place-items-center rounded-xl border border-transparent text-slate hover:border-sand hover:bg-ivory hover:text-ink sm:grid"
@@ -249,7 +249,7 @@ export default function AppShell() {
           </header>
 
           <main className="min-w-0 flex-1 bg-ivory">
-            <div className="mx-auto w-full max-w-[1600px] px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
+            <div className="w-full px-4 py-6 sm:px-6 lg:px-8 lg:py-8">
               <Outlet />
             </div>
           </main>

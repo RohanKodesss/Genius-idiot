@@ -225,6 +225,9 @@ begin
 end;
 $$;
 
+-- Refresh PostgREST's schema cache after applying migrations such as `notes`.
+notify pgrst, 'reload schema';
+
 -- ────────────────────────────────────────────────────────────
 -- 6. OPTIONAL: SEED DATA FOR DEMO
 -- ────────────────────────────────────────────────────────────

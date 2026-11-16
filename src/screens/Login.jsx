@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { Navigate, useNavigate } from 'react-router-dom';
+import { Navigate, useNavigate, useSearchParams } from 'react-router-dom';
 import { ArrowLeft, MailCheck } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Button, Input, Spinner } from '../components/ui';
@@ -8,8 +8,10 @@ import AuthLayout from '../components/AuthLayout';
 export default function Login() {
   const { authUser, logIn, signUp, resendConfirmation, requestPasswordReset, demoMode } =
     useApp();
-  // Account creation comes first: no account, no entry.
-  const [mode, setMode] = useState('signup');
+  // Account creation comes first unless the link explicitly asks to log in.
+  const [searchParams] = useSearchParams();
+  const requestedMode = searchParams.get('mode');
+  const [mode, setMode] = useState(requestedMode === 'login' ? 'login' : 'signup');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [error, setError] = useState('');
@@ -25,6 +27,10 @@ export default function Login() {
     const id = setInterval(() => setCooldown((value) => Math.max(0, value - 1)), 1000);
     return () => clearInterval(id);
   }, [cooldown]);
+
+  useEffect(() => {
+    if (requestedMode === 'login' || requestedMode === 'signup') setMode(requestedMode);
+  }, [requestedMode]);
 
   if (authUser) return <Navigate to="/" replace />;
 

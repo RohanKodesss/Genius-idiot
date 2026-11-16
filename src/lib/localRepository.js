@@ -5,6 +5,8 @@ import { addDay, todayOf } from './dates';
 
 const KEY = 'gi:data';
 export const DEMO_USER = { id: 'demo-user', email: 'demo@genius-idiot.local' };
+let memoryStore = null;
+let storageUnavailable = false;
 
 const uuid = () =>
   globalThis.crypto?.randomUUID?.() ?? `id-${Math.random().toString(36).slice(2)}`;
@@ -13,15 +15,26 @@ const ok = (data) => ({ ok: true, data });
 const fail = (message) => ({ ok: false, status: 400, code: null, message, retryable: false });
 
 function read() {
+  if (storageUnavailable) return memoryStore;
   try {
-    return JSON.parse(localStorage.getItem(KEY));
+    const stored = JSON.parse(localStorage.getItem(KEY));
+    if (stored) memoryStore = stored;
+    return stored ?? memoryStore;
   } catch {
-    return null;
+    storageUnavailable = true;
+    return memoryStore;
   }
 }
 
 function write(data) {
-  localStorage.setItem(KEY, JSON.stringify(data));
+  memoryStore = data;
+  try {
+    localStorage.setItem(KEY, JSON.stringify(data));
+    storageUnavailable = false;
+  } catch {
+    storageUnavailable = true;
+    // Keep demo mode usable for this session when storage is blocked or full.
+  }
   return data;
 }
 
@@ -240,5 +253,10 @@ export function onAuthChange() {
 }
 
 export function resetDemoData() {
-  localStorage.removeItem(KEY);
+  memoryStore = null;
+  try {
+    localStorage.removeItem(KEY);
+  } catch {
+    // The next read will reseed an in-memory demo workspace.
+  }
 }

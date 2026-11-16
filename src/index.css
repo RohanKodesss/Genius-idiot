@@ -20,6 +20,7 @@
     --bordeaux: 192 74 69;
     /* Always light: text and hairlines on the dark accent surfaces. */
     --linen: 243 246 244;
+    --landing-canvas: 247 247 244;
     --shadow-card: 0 1px 3px rgba(21, 25, 23, 0.04), 0 16px 36px -24px rgba(21, 25, 23, 0.16);
     /* Chart colours for SVG attributes and Recharts inline styles. */
     --chart-grid: #e3e5df;
@@ -37,7 +38,7 @@
     --sand: 38 38 38;
     --ink: 255 255 255;
     --slate: 163 163 163;
-    --mist: 115 115 115;
+    --mist: 133 133 133;
     --obsidian: 14 14 14;
     --champagne: 245 245 245;
     --champagne-light: 255 255 255;
@@ -45,9 +46,10 @@
     --terracotta: 251 146 60;
     --bordeaux: 248 113 113;
     --linen: 255 255 255;
+    --landing-canvas: 0 0 0;
     --shadow-card: 0 1px 3px rgba(0, 0, 0, 0.8), 0 20px 48px -24px rgba(0, 0, 0, 0.95);
     --chart-grid: #262626;
-    --chart-tick: #737373;
+    --chart-tick: #858585;
     --chart-surface: #121212;
     --chart-muted: #a3a3a3;
     --chart-text: #ffffff;
@@ -213,9 +215,8 @@
     --terracotta: 242 156 103;
     --bordeaux: 248 113 113;
     --linen: 248 248 248;
-    background-color: #000;
-    background-image: radial-gradient(rgba(255, 255, 255, 0.24) 0.7px, transparent 0.8px);
-    background-size: 22px 22px;
+    --landing-canvas: 0 0 0;
+    background: linear-gradient(to bottom, #0a0a0a 0, #000 14rem);
     color: rgb(var(--ink));
   }
 

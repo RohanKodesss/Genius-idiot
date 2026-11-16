@@ -64,7 +64,7 @@ A Nordic Minimalist study tracker designed for sustained, quiet focus. Warm alab
 - **Hairlines (`--sand`)**: `#262626` (RGB `38 38 38`) — Crisp Charcoal Rim.
 - **Primary Ink (`--ink`)**: `#FFFFFF` (RGB `255 255 255`) — Pure Crisp White (21:1 contrast).
 - **Secondary Slate (`--slate`)**: `#A3A3A3` (RGB `163 163 163`) — Neutral Silver (8:1 contrast).
-- **Helper Mist (`--mist`)**: `#737373` (RGB `115 115 115`) — Medium Gray (4.8:1 contrast).
+- **Helper Mist (`--mist`)**: `#858585` (RGB `133 133 133`) — Medium Gray (5.1:1 contrast on the dark card surface).
 - **Primary Action (`--champagne`)**: `#F5F5F5` (RGB `245 245 245`) — Pure Polar White button / text.
 - **Copper Streak (`--terracotta`)**: `#FB923C` (RGB `251 146 60`) — Vibrant Amber Copper.
 - **Done / Mint (`--sage`)**: `#4ADE80` (RGB `74 222 128`) — Crisp Emerald Pine.

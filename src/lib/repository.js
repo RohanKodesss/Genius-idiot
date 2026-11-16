@@ -26,6 +26,13 @@ function unwrap(response, { emptyIsOk = false } = {}) {
   return { ok: true, data: response.data };
 }
 
+function omitNullNotes(task) {
+  if (task.notes != null) return task;
+  const row = { ...task };
+  delete row.notes;
+  return row;
+}
+
 // ── Auth ────────────────────────────────────────────────────────────────────
 // Every auth result carries `needsConfirmation` when the email is unverified,
 // so the UI can show the verify panel instead of letting the user in.
@@ -225,12 +232,17 @@ export async function deleteGoal(goalId) {
 // ── Tasks ───────────────────────────────────────────────────────────────────
 export async function createTask(task) {
   if (DEMO_MODE) return local.createTask(task);
-  return unwrap(await supabase.from('tasks').insert(task).select());
+  // `notes` is nullable and was added after the first schema release. Avoid
+  // sending an explicit null for it so older databases can still accept a
+  // basic task while the user applies the current schema migration.
+  const row = omitNullNotes(task);
+  return unwrap(await supabase.from('tasks').insert(row).select());
 }
 
 export async function importTasks(tasks) {
   if (DEMO_MODE) return local.importTasks(tasks);
-  return unwrap(await supabase.from('tasks').insert(tasks).select());
+  const rows = tasks.map(omitNullNotes);
+  return unwrap(await supabase.from('tasks').insert(rows).select());
 }
 
 export async function updateTask(taskId, patch) {

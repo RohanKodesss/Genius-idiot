@@ -27,10 +27,26 @@ function groupBy(rows, key) {
   }, {});
 }
 
+function explainSaveFailure(res, fallback) {
+  if (['PGRST205', 'PGRST204', '42P01', '42703'].includes(res?.code)) {
+    return 'Database schema is missing or out of date. Run supabase/schema.sql, then retry.';
+  }
+  if (res?.status === 401 || res?.status === 403) {
+    return 'Your session may have expired. Sign in again, then retry.';
+  }
+  if (res?.retryable) {
+    return 'Could not reach the database. Check your connection and retry.';
+  }
+  if (res?.code === '23505') return 'That item already exists.';
+  return fallback;
+}
+
 export function AppProvider({ children }) {
   const [authUser, setAuthUser] = useState(undefined); // undefined = unknown
+  const [authLoadError, setAuthLoadError] = useState(null);
   const [data, setData] = useState(EMPTY);
   const [loading, setLoading] = useState(true);
+  const [dataLoadError, setDataLoadError] = useState(null);
   const [toasts, setToasts] = useState([]);
   const [dayTick, setDayTick] = useState(0);
 
@@ -45,20 +61,18 @@ export function AppProvider({ children }) {
   }, []);
 
   const reload = useCallback(async () => {
+    setLoading(true);
     const res = await repo.fetchAll();
     if (!res.ok) {
-      notify(
-        res.code === 'PGRST205'
-          ? 'Database not set up. Run supabase/schema.sql in the Supabase SQL editor.'
-          : 'Could not load your data. Try again.',
-        'error',
-      );
+      setDataLoadError(res);
       setLoading(false);
       return;
     }
+    setDataLoadError(null);
     setData(res.data);
     setLoading(false);
-  }, [notify]);
+    return res;
+  }, []);
 
   // Boot: resolve the session once, then subscribe to auth changes.
   useEffect(() => {
@@ -66,24 +80,35 @@ export function AppProvider({ children }) {
     (async () => {
       const res = await repo.getCurrentUser();
       if (!active) return;
-      setAuthUser(res.ok ? res.data : null);
-      if (res.ok && res.data) await reload();
+      if (!res.ok) {
+        setAuthLoadError(res);
+        setLoading(false);
+        return;
+      }
+      setAuthLoadError(null);
+      setAuthUser(res.data);
+      if (res.data) await reload();
       else setLoading(false);
     })();
 
     const unsubscribe = repo.onAuthChange(async (event, user) => {
       if (!active) return;
       if (event === 'SIGNED_IN' && user) {
+        setAuthLoadError(null);
         setAuthUser(user);
         await reload();
       }
       // A recovery link signs the user in with a limited session and no data load.
       if (event === 'PASSWORD_RECOVERY' && user) {
+        setAuthLoadError(null);
         setAuthUser(user);
       }
       if (event === 'SIGNED_OUT') {
+        setAuthLoadError(null);
+        setDataLoadError(null);
         setAuthUser(null);
         setData(EMPTY);
+        setLoading(false);
       }
     });
 
@@ -92,6 +117,20 @@ export function AppProvider({ children }) {
       unsubscribe?.();
     };
   }, [reload]);
+
+  const retrySession = async () => {
+    setLoading(true);
+    const res = await repo.getCurrentUser();
+    if (!res.ok) {
+      setAuthLoadError(res);
+      setLoading(false);
+      return;
+    }
+    setAuthLoadError(null);
+    setAuthUser(res.data);
+    if (res.data) await reload();
+    else setLoading(false);
+  };
 
   // The midnight problem: projection depends on "today".
   useEffect(() => {
@@ -197,7 +236,7 @@ export function AppProvider({ children }) {
     const res = await repo.completeTask(taskId, at, minutes);
     if (!res.ok) {
       restoreTask(original);
-      notify("Couldn't save that task. Try again.", 'error');
+      notify(explainSaveFailure(res, "Couldn't save that task. Try again."), 'error');
     }
   };
 
@@ -215,7 +254,7 @@ export function AppProvider({ children }) {
     const res = await repo.undoTask(taskId);
     if (!res.ok) {
       restoreTask(original);
-      notify("Couldn't undo that. Try again.", 'error');
+      notify(explainSaveFailure(res, "Couldn't undo that. Try again."), 'error');
     }
   };
 
@@ -233,7 +272,9 @@ export function AppProvider({ children }) {
     if (!res.ok) {
       setData((current) => ({ ...current, goals: current.goals.filter((g) => g.id !== goal.id) }));
       notify(
-        res.status === 409 ? `You already have a goal named “${goal.name}”.` : "Couldn't save this goal. Try again.",
+        res.status === 409 || res.code === '23505'
+          ? `You already have a goal named “${goal.name}”.`
+          : explainSaveFailure(res, "Couldn't save this goal. Try again."),
         'error',
       );
       return res;
@@ -255,7 +296,7 @@ export function AppProvider({ children }) {
         ...current,
         goals: current.goals.map((goal) => (goal.id === goalId ? original : goal)),
       }));
-      notify("Couldn't save this goal. Try again.", 'error');
+      notify(explainSaveFailure(res, "Couldn't save this goal. Try again."), 'error');
     }
     return res;
   };
@@ -270,7 +311,7 @@ export function AppProvider({ children }) {
     const res = await repo.deleteGoal(goalId);
     if (!res.ok) {
       setData(snapshot);
-      notify("Couldn't delete that goal. Try again.", 'error');
+      notify(explainSaveFailure(res, "Couldn't delete that goal. Try again."), 'error');
     }
   };
 
@@ -298,7 +339,7 @@ export function AppProvider({ children }) {
     if (!res.ok) {
       const ids = new Set(rows.map((row) => row.id));
       setData((current) => ({ ...current, tasks: current.tasks.filter((task) => !ids.has(task.id)) }));
-      notify("Couldn't import that roadmap. Try again.", 'error');
+      notify(explainSaveFailure(res, "Couldn't import that roadmap. Try again."), 'error');
     }
     return res;
   };
@@ -325,7 +366,7 @@ export function AppProvider({ children }) {
     const res = await repo.createTask(task);
     if (!res.ok) {
       setData((current) => ({ ...current, tasks: current.tasks.filter((row) => row.id !== task.id) }));
-      notify("Couldn't add that task. Try again.", 'error');
+      notify(explainSaveFailure(res, "Couldn't add that task. Try again."), 'error');
     }
     return res;
   };
@@ -340,7 +381,7 @@ export function AppProvider({ children }) {
     const res = await repo.updateTask(taskId, patch);
     if (!res.ok) {
       restoreTask(original);
-      notify("Couldn't save that task. Try again.", 'error');
+      notify(explainSaveFailure(res, "Couldn't save that task. Try again."), 'error');
     }
     return res;
   };
@@ -352,7 +393,7 @@ export function AppProvider({ children }) {
     const res = await repo.deleteTask(taskId);
     if (!res.ok) {
       setData((current) => ({ ...current, tasks: [...current.tasks, original] }));
-      notify("Couldn't delete that task. Try again.", 'error');
+      notify(explainSaveFailure(res, "Couldn't delete that task. Try again."), 'error');
     }
   };
 
@@ -376,7 +417,7 @@ export function AppProvider({ children }) {
     const res = await repo.reorderTask(taskId, newOrder);
     if (!res.ok) {
       setData((current) => ({ ...current, tasks: original }));
-      notify("Couldn't reorder. Try again.", 'error');
+      notify(explainSaveFailure(res, "Couldn't reorder. Try again."), 'error');
       reload();
     }
   };
@@ -387,7 +428,7 @@ export function AppProvider({ children }) {
     const res = await repo.markRestDay(goalId, date);
     if (!res.ok) {
       setData((current) => ({ ...current, restDays: current.restDays.filter((row) => row.id !== restDay.id) }));
-      notify("Couldn't mark that rest day. Try again.", 'error');
+      notify(explainSaveFailure(res, "Couldn't mark that rest day. Try again."), 'error');
     }
   };
 
@@ -400,7 +441,7 @@ export function AppProvider({ children }) {
     const res = await repo.unmarkRestDay(goalId, date);
     if (!res.ok) {
       setData((current) => ({ ...current, restDays: original }));
-      notify("Couldn't remove that rest day. Try again.", 'error');
+      notify(explainSaveFailure(res, "Couldn't remove that rest day. Try again."), 'error');
     }
   };
 
@@ -416,7 +457,7 @@ export function AppProvider({ children }) {
     setData((current) => ({ ...current, tasks: current.tasks.filter((task) => !ids.has(task.id)) }));
     const results = await Promise.all(pending.map((task) => repo.deleteTask(task.id)));
     if (results.some((res) => !res.ok)) {
-      notify("Couldn't trim every task. Refresh to see the result.", 'error');
+      notify(explainSaveFailure(results.find((res) => !res.ok), "Couldn't trim every task. Refresh to see the result."), 'error');
       reload();
     } else {
       notify(`Trimmed ${pending.length} task${pending.length === 1 ? '' : 's'}.`, 'success');
@@ -456,8 +497,11 @@ export function AppProvider({ children }) {
 
   const logOut = async () => {
     await repo.logOut();
+    setAuthLoadError(null);
+    setDataLoadError(null);
     setAuthUser(null);
     setData(EMPTY);
+    setLoading(false);
   };
 
   const resetDemo = async () => {
@@ -467,6 +511,8 @@ export function AppProvider({ children }) {
 
   const value = {
     authUser,
+    authLoadError,
+    dataLoadError,
     loading,
     demoMode: DEMO_MODE,
     today,
@@ -487,6 +533,7 @@ export function AppProvider({ children }) {
     notify,
     dismiss,
     reload,
+    retrySession,
     logIn,
     signUp,
     resendConfirmation,

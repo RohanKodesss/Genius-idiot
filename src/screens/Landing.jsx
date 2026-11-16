@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { lazy, Suspense, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
@@ -22,7 +22,11 @@ import Card3D from '../components/motion/Card3D';
 import ScrollReveal from '../components/motion/ScrollReveal';
 import SpotlightCard from '../components/motion/SpotlightCard';
 import ShimmerButton from '../components/motion/ShimmerButton';
-import { ParticleWave } from '../components/ui/particle-wave';
+import BGPattern from '../components/ui/BGPattern';
+
+const ParticleWave = lazy(() =>
+  import('../components/ui/particle-wave').then((module) => ({ default: module.ParticleWave })),
+);
 
 // Verified curriculum structures
 const PRESETS = [
@@ -141,7 +145,7 @@ export default function Landing() {
             ) : (
               <div className="flex items-center gap-1.5 sm:gap-2">
                 <Link
-                  to="/login"
+                  to="/login?mode=signup"
                   className="hidden sm:inline-flex rounded-xl px-3 py-2 text-sm font-medium text-slate hover:text-ink transition"
                 >
                   Create account
@@ -149,7 +153,7 @@ export default function Landing() {
                 <motion.button
                   whileHover={{ scale: 1.03 }}
                   whileTap={{ scale: 0.97 }}
-                  onClick={() => navigate('/login')}
+                  onClick={() => navigate('/login?mode=login')}
                   className="inline-flex min-h-11 items-center justify-center gap-1.5 rounded-xl bg-champagne px-4 sm:px-5 py-2 text-sm font-semibold text-parchment hover:bg-champagne-light transition shadow-sm"
                 >
                   <span>Log in</span>
@@ -159,6 +163,13 @@ export default function Landing() {
             )}
           </div>
         </div>
+        <nav aria-label="Page sections" className="flex gap-5 overflow-x-auto border-t border-sand/70 px-4 py-2.5 text-xs font-medium text-slate lg:hidden sm:justify-center sm:gap-7 sm:text-sm">
+          <a href="#simulator" className="shrink-0 hover:text-ink transition">Simulator</a>
+          <a href="#workflow" className="shrink-0 hover:text-ink transition">How it works</a>
+          <a href="#curriculum" className="shrink-0 hover:text-ink transition">Roadmaps</a>
+          <a href="#comparison" className="shrink-0 hover:text-ink transition">Why it works</a>
+          <a href="#faq" className="shrink-0 hover:text-ink transition">FAQ</a>
+        </nav>
       </header>
 
       {/* Hero Section — ParticleWave as immersive background */}
@@ -169,7 +180,9 @@ export default function Landing() {
           className="pointer-events-none absolute -inset-x-[50vw] top-0 bottom-0 overflow-hidden"
           style={{ width: '100vw', left: '50%', transform: 'translateX(-50%)' }}
         >
-          <ParticleWave className="w-full h-full opacity-50" />
+          <Suspense fallback={null}>
+            <ParticleWave className="w-full h-full opacity-50" />
+          </Suspense>
           <div className="absolute inset-0 bg-gradient-to-b from-ivory/0 via-ivory/0 to-ivory" />
         </div>
         {/* Subtle accent glow */}
@@ -192,16 +205,16 @@ export default function Landing() {
           </p>
 
           <div className="mt-8 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
-            <ShimmerButton onClick={() => navigate('/login')}>
-              <span>Log in to Workspace</span>
+            <ShimmerButton onClick={() => navigate('/login?mode=signup')}>
+              <span>Create free account</span>
               <ArrowRight className="h-4 w-4" aria-hidden="true" />
             </ShimmerButton>
             <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
               <Link
-                to="/login"
+                to="/login?mode=login"
                 className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl border border-sand bg-parchment px-6 py-3 font-medium text-ink hover:border-ink hover:bg-ivory transition shadow-sm"
               >
-                Create free account
+                I already have an account
               </Link>
             </motion.div>
           </div>
@@ -221,9 +234,19 @@ export default function Landing() {
       </section>
 
       {/* Interactive 3D Perspective Simulation Sandbox */}
-      <div className="landing-sections">
-      <main>
-      <section id="simulator" className="landing-section landing-section--soft py-12 sm:py-16">
+      <div className="landing-sections relative isolate">
+      <BGPattern
+        aria-hidden="true"
+        variant="grid"
+        size={32}
+        fill="rgb(var(--mist) / 0.18)"
+        style={{
+          maskImage: 'linear-gradient(to bottom, transparent 0, #000 14rem)',
+          WebkitMaskImage: 'linear-gradient(to bottom, transparent 0, #000 14rem)',
+        }}
+      />
+      <main className="relative z-10">
+      <section id="simulator" className="landing-section py-12 sm:py-16">
         <ScrollReveal>
           <Card3D depth={10} className="rounded-2xl border border-sand bg-parchment p-5 sm:p-8 lg:p-10 shadow-card">
             <div className="sm:flex sm:items-end sm:justify-between">
@@ -433,7 +456,7 @@ export default function Landing() {
       </section>
 
       {/* Curriculum / Roadmaps Showcase */}
-      <section id="curriculum" className="landing-section landing-section--soft py-12 sm:py-16">
+      <section id="curriculum" className="landing-section py-12 sm:py-16">
         <ScrollReveal>
           <SpotlightCard className="surface-card rounded-2xl border border-sand bg-parchment p-5 sm:p-8 lg:p-10 shadow-card">
             <div className="sm:flex sm:items-center sm:justify-between">
@@ -518,7 +541,7 @@ export default function Landing() {
       </section>
 
       {/* Why Fixed Dates Fail Self-Study (Comparison Matrix) - Fully Responsive */}
-      <section id="comparison" className="landing-section landing-section--tint py-12 sm:py-16">
+      <section id="comparison" className="landing-section py-12 sm:py-16">
         <ScrollReveal>
           <h2 className="font-display text-3xl sm:text-4xl text-ink text-center">
             Why fixed dates fail self-study
@@ -571,7 +594,7 @@ export default function Landing() {
       </section>
 
       {/* Manifesto Quote with 3D Depth */}
-      <section className="landing-section landing-section--soft py-12 sm:py-16 text-center">
+      <section className="landing-section py-12 sm:py-16 text-center">
         <ScrollReveal>
           <Card3D depth={8} className="rounded-2xl border border-sand bg-parchment p-6 sm:p-12 shadow-card">
             <blockquote className="font-display text-2xl sm:text-4xl text-ink leading-snug">
@@ -631,7 +654,7 @@ export default function Landing() {
       </section>
 
       {/* Final Call to Action with Spotlight & Shimmer */}
-      <section className="landing-section landing-section--tint py-12 sm:py-16 text-center">
+      <section className="landing-section py-12 sm:py-16 text-center">
         <ScrollReveal>
           <SpotlightCard className="rounded-3xl border border-sand bg-parchment p-7 sm:p-14 shadow-card">
             <h2 className="font-display text-3xl sm:text-5xl text-ink tracking-tight">
@@ -642,16 +665,16 @@ export default function Landing() {
             </p>
 
             <div className="mt-8 flex flex-wrap items-center justify-center gap-3 sm:gap-4">
-              <ShimmerButton onClick={() => navigate('/login')}>
-                <span>Log in to Workspace</span>
+              <ShimmerButton onClick={() => navigate('/login?mode=signup')}>
+                <span>Create free account</span>
                 <ArrowRight className="h-4 w-4" aria-hidden="true" />
               </ShimmerButton>
               <motion.div whileHover={{ scale: 1.02 }} whileTap={{ scale: 0.98 }}>
                 <Link
-                  to="/login"
+                  to="/login?mode=login"
                   className="inline-flex min-h-[48px] items-center justify-center gap-2 rounded-xl border border-sand bg-parchment px-6 sm:px-7 py-3.5 font-medium text-ink hover:border-ink hover:bg-ivory transition shadow-sm text-sm sm:text-base"
                 >
-                  Create free account
+                  I already have an account
                 </Link>
               </motion.div>
             </div>
@@ -695,7 +718,7 @@ export default function Landing() {
       </main>
 
       {/* Footer */}
-      <footer className="border-t border-sand bg-transparent py-10 sm:py-12">
+      <footer className="relative z-10 border-t border-sand bg-transparent py-10 sm:py-12">
         <div className="mx-auto flex max-w-6xl flex-col items-center justify-between gap-6 px-4 sm:flex-row sm:px-6 lg:px-8 text-xs text-slate">
           <div className="flex items-center gap-3">
             <span className="grid h-7 w-7 place-items-center overflow-hidden rounded-lg bg-white">
@@ -709,8 +732,8 @@ export default function Landing() {
             <a href="#simulator" className="hover:text-ink transition">Simulator</a>
             <a href="#curriculum" className="hover:text-ink transition">Roadmaps</a>
             <a href="#faq" className="hover:text-ink transition">FAQ</a>
-            <Link to="/how-it-works" className="hover:text-ink transition">How it works</Link>
-            <Link to="/login" className="hover:text-ink transition">Log in</Link>
+            <a href="#workflow" className="hover:text-ink transition">How it works</a>
+            <Link to="/login?mode=login" className="hover:text-ink transition">Log in</Link>
           </div>
         </div>
       </footer>

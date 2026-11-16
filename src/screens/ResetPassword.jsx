@@ -76,7 +76,7 @@ export default function ResetPassword() {
               Reset links only work in the browser you requested them from, and only until they are
               used. Request a fresh one and open it in this same browser.
             </p>
-            <Link to="/login">
+            <Link to="/login?mode=login">
               <Button className="w-full">Request a new link</Button>
             </Link>
           </div>
@@ -142,7 +142,7 @@ export default function ResetPassword() {
             </Button>
 
             <Link
-              to="/login"
+              to="/login?mode=login"
               className="text-xs text-slate hover:text-ink underline underline-offset-4 justify-self-center"
             >
               Back to log in
