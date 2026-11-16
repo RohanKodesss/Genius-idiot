@@ -250,12 +250,6 @@
     }
   }
 
-  @media (min-width: 1024px) {
-    .welcome-header {
-      margin-bottom: -5.5rem;
-    }
-  }
-
   .landing-section {
     width: 100%;
     max-width: none;
