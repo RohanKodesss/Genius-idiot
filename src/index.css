@@ -211,7 +211,7 @@
     position: sticky;
     top: 0.75rem;
     width: min(calc(100% - 2rem), 80rem);
-    margin: 0.75rem auto 0;
+    margin: 0.75rem auto -7rem;
     overflow: hidden;
     border: 1px solid rgb(var(--sand) / 0.72);
     border-radius: 999px;
@@ -244,9 +244,11 @@
     .welcome-header {
       border-radius: 1.25rem;
     }
+  }
 
-    .landing-section {
-      scroll-margin-top: 9rem;
+  @media (min-width: 1024px) {
+    .welcome-header {
+      margin-bottom: -5.5rem;
     }
   }
 
