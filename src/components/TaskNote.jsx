@@ -16,9 +16,12 @@ export default function TaskNote({ value = '', onSave, compact = false }) {
 
   const save = async () => {
     setBusy(true);
-    await onSave(draft.trim() ? draft.trim() : null);
-    setBusy(false);
-    setEditing(false);
+    try {
+      const result = await onSave(draft.trim() ? draft.trim() : null);
+      if (result?.ok) setEditing(false);
+    } finally {
+      setBusy(false);
+    }
   };
 
   if (editing) {

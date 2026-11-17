@@ -41,6 +41,12 @@ describe('computeStreak', () => {
     const tasks = [done('2026-11-13'), done('2026-11-13')];
     expect(computeStreak(tasks, [], today).current).toBe(1);
   });
+
+  it('does not count future hibernation days toward the longest streak', () => {
+    const tasks = [done('2026-11-11'), done('2026-11-12'), done('2026-11-13')];
+    const restDays = ['2026-11-14', '2026-11-15', '2026-11-16', '2026-11-17'];
+    expect(computeStreak(tasks, restDays, today)).toEqual({ current: 3, longest: 3 });
+  });
 });
 
 describe('computeOverallStreak', () => {

@@ -142,6 +142,7 @@ export default function GoalTimer({ goal, task, onFinish, autoStart = false }) {
             <h1 className="mt-8 max-w-4xl break-words font-display text-3xl leading-tight text-linen sm:text-5xl lg:text-6xl">
               {task.title}
             </h1>
+            {goal.why && <p className="mt-4 max-w-xl text-base leading-relaxed text-linen/65">“{goal.why}”</p>}
             {task.link && (
               <a
                 href={task.link}
@@ -206,6 +207,7 @@ export default function GoalTimer({ goal, task, onFinish, autoStart = false }) {
         document.body,
       )}
       {!state.running && <div className="rounded-xl border border-sand bg-ivory p-3">
+      {goal.why && <p className="mb-3 text-sm leading-relaxed text-slate">“{goal.why}”</p>}
       <div className="flex items-baseline justify-between gap-2">
         <span
           role="timer"

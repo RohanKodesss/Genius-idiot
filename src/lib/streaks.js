@@ -43,7 +43,8 @@ function activeDays(tasks, restDays) {
 // Today not being done yet must not show a zero streak all morning, so the
 // current run is counted from today if today is active, else from yesterday.
 function streakFromDays(days, today) {
-  const sorted = [...days].sort();
+  // Future rest days reserve a break, but must not inflate the historical best.
+  const sorted = [...days].filter((day) => day <= today).sort();
   let longest = 0;
   let run = 0;
   let previous = null;
