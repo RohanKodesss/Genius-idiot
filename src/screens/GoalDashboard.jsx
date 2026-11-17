@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { format } from 'date-fns';
-import { ArrowLeft, ArrowUpRight, CalendarDays, ExternalLink, Flame, Moon, Target } from 'lucide-react';
+import { ArrowLeft, ArrowUpRight, CalendarDays, ExternalLink, EyeOff, Flame, Moon, Share2, Target } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { fromDay } from '../lib/dates';
 import { Badge, Button, Card, EmptyState } from '../components/ui';
@@ -47,10 +47,12 @@ export default function GoalDashboard() {
     completeTask,
     trimLast,
     reorderTask,
+    toggleGoalVisibility,
     notify,
   } = useApp();
 
   const [accepted, setAccepted] = useState(false);
+  const [sharingBusy, setSharingBusy] = useState(false);
   const goal = goals.find((row) => row.id === goalId);
 
   if (!goal) {
@@ -76,6 +78,48 @@ export default function GoalDashboard() {
   // Same rule as the dashboard card: only a task projected for today can be timed.
   const todayTask = projection[0]?.projected === today ? projection[0] : null;
 
+  const copyPublicLink = async (publicId) => {
+    const url = `${window.location.origin}/p/${publicId}`;
+    try {
+      if (navigator.clipboard?.writeText) {
+        await navigator.clipboard.writeText(url);
+      } else {
+        const field = document.createElement('textarea');
+        field.value = url;
+        field.setAttribute('readonly', '');
+        field.style.position = 'fixed';
+        field.style.opacity = '0';
+        document.body.appendChild(field);
+        field.select();
+        const copied = document.execCommand('copy');
+        field.remove();
+        if (!copied) throw new Error('Clipboard access is unavailable.');
+      }
+      notify('Public link copied to clipboard!', 'success');
+    } catch {
+      notify('Sharing is on, but this browser could not copy the link.', 'error');
+    }
+  };
+
+  const shareGoal = async () => {
+    if (sharingBusy) return;
+    if (goal.is_public && goal.public_id) {
+      await copyPublicLink(goal.public_id);
+      return;
+    }
+    setSharingBusy(true);
+    const result = await toggleGoalVisibility(goal.id, true);
+    setSharingBusy(false);
+    if (result?.ok && result.data?.public_id) await copyPublicLink(result.data.public_id);
+  };
+
+  const stopSharing = async () => {
+    setSharingBusy(true);
+    const result = await toggleGoalVisibility(goal.id, false);
+    setSharingBusy(false);
+    if (result?.ok) notify('Public sharing turned off.', 'success');
+  };
+
   return (
     <div className="grid min-w-0 gap-6">
       <div>
@@ -99,6 +143,16 @@ export default function GoalDashboard() {
           </div>
           <div className="flex flex-wrap items-center gap-2">
             {shift > 0 && <Badge tone="terracotta">+{shift} days behind</Badge>}
+            <Button variant="secondary" disabled={sharingBusy} onClick={shareGoal}>
+              <Share2 className="h-4 w-4" aria-hidden="true" />
+              {sharingBusy ? 'Updating…' : goal.is_public ? 'Copy public link' : 'Share roadmap'}
+            </Button>
+            {goal.is_public && (
+              <Button variant="ghost" disabled={sharingBusy} onClick={stopSharing}>
+                <EyeOff className="h-4 w-4" aria-hidden="true" />
+                Stop sharing
+              </Button>
+            )}
             <Button
               variant="secondary"
               onClick={() =>

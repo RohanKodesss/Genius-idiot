@@ -263,6 +263,8 @@ export function AppProvider({ children }) {
   const addGoal = async ({ name, daily_minutes, why }) => {
     const goal = {
       id: uuid(),
+      public_id: uuid(),
+      is_public: false,
       user_id: authUser?.id,
       name: name.trim(),
       daily_minutes,
@@ -295,6 +297,8 @@ export function AppProvider({ children }) {
       createdAt,
       taskIds: template.tasks.map(() => uuid()),
     });
+    goal.public_id = uuid();
+    goal.is_public = false;
     goal.why = why.trim();
 
     const goalResult = await repo.createGoal(goal);
@@ -334,6 +338,28 @@ export function AppProvider({ children }) {
       notify(explainSaveFailure(res, "Couldn't save this goal. Try again."), 'error');
     }
     return res;
+  };
+
+  const toggleGoalVisibility = async (goalId, isPublic) => {
+    const original = data.goals.find((goal) => goal.id === goalId);
+    if (!original) return { ok: false, status: 404, message: 'Goal not found.' };
+    const publicId = original.public_id ?? uuid();
+    setData((current) => ({
+      ...current,
+      goals: current.goals.map((goal) => goal.id === goalId
+        ? { ...goal, is_public: isPublic, public_id: publicId }
+        : goal),
+    }));
+    const res = await repo.toggleGoalVisibility(goalId, isPublic);
+    if (!res.ok) {
+      setData((current) => ({ ...current, goals: current.goals.map((goal) => goal.id === goalId ? original : goal) }));
+      notify(explainSaveFailure(res, "Couldn't update sharing. Try again."), 'error');
+      return res;
+    }
+    const saved = Array.isArray(res.data) ? res.data[0] : res.data;
+    const updated = { ...original, ...saved, is_public: isPublic, public_id: saved?.public_id ?? publicId };
+    setData((current) => ({ ...current, goals: current.goals.map((goal) => goal.id === goalId ? updated : goal) }));
+    return { ...res, data: updated };
   };
 
   const deleteGoal = async (goalId) => {
@@ -612,6 +638,7 @@ export function AppProvider({ children }) {
     addGoal,
     createGoalFromTemplate,
     updateGoal,
+    toggleGoalVisibility,
     deleteGoal,
     importRoadmap,
     addTask,

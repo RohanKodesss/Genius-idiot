@@ -223,6 +223,28 @@ export async function updateGoal(goalId, patch) {
   return unwrap(await supabase.from('goals').update(patch).eq('id', goalId).select());
 }
 
+export async function toggleGoalVisibility(goalId, isPublic) {
+  if (DEMO_MODE) return local.toggleGoalVisibility(goalId, isPublic);
+  return unwrap(
+    await supabase
+      .from('goals')
+      .update({ is_public: isPublic })
+      .eq('id', goalId)
+      .select('id,is_public,public_id'),
+  );
+}
+
+export async function getPublicGoalByPublicId(publicId) {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(publicId ?? '')) {
+    return fail(404, 'PGRST116', 'Public roadmap not found.', false);
+  }
+  if (DEMO_MODE) return local.getPublicGoalByPublicId(publicId);
+  const { data, error } = await supabase.rpc('get_public_roadmap', { p_public_id: publicId });
+  if (error) return fromError(error, error.status ?? 500);
+  if (!data?.goal) return fail(404, 'PGRST116', 'Public roadmap not found.', false);
+  return { ok: true, data };
+}
+
 // Deletes are idempotent: an empty array means it is already gone.
 export async function deleteGoal(goalId) {
   if (DEMO_MODE) return local.deleteGoal(goalId);
