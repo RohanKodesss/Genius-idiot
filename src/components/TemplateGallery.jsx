@@ -11,15 +11,17 @@ export default function TemplateGallery({ className = '' }) {
   const navigate = useNavigate();
   const [selected, setSelected] = useState(null);
   const [busy, setBusy] = useState(false);
+  const [why, setWhy] = useState('');
 
   const confirmTemplate = async () => {
     if (!selected || busy) return;
     setBusy(true);
-    const result = await createGoalFromTemplate(selected);
+    const result = await createGoalFromTemplate(selected, why);
     setBusy(false);
     if (!result?.ok) return;
     notify(`${selected.title} is ready with ${selected.tasks.length} tasks.`, 'success');
     setSelected(null);
+    setWhy('');
     navigate(`/goal/${result.data.id}`);
   };
 
@@ -65,13 +67,13 @@ export default function TemplateGallery({ className = '' }) {
       {selected && (
         <Modal
           title={`Start “${selected.title}”?`}
-          onClose={() => { if (!busy) setSelected(null); }}
+          onClose={() => { if (!busy) { setSelected(null); setWhy(''); } }}
           footer={
             <>
-              <Button variant="secondary" disabled={busy} onClick={() => setSelected(null)}>
+              <Button variant="secondary" disabled={busy} onClick={() => { setSelected(null); setWhy(''); }}>
                 Cancel
               </Button>
-              <Button disabled={busy} onClick={confirmTemplate}>
+              <Button disabled={busy || !why.trim()} onClick={confirmTemplate}>
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <ArrowRight className="h-4 w-4" aria-hidden="true" />}
                 {busy ? 'Adding roadmap…' : 'Create roadmap'}
               </Button>
@@ -81,6 +83,8 @@ export default function TemplateGallery({ className = '' }) {
           <p className="text-sm leading-relaxed text-slate">
             This will add 1 goal and {selected.tasks.length} tasks to your dashboard.
           </p>
+          <label className="mt-4 block text-[13px] font-medium text-slate" htmlFor="template-why">Why does this goal matter to you?</label>
+          <textarea id="template-why" required maxLength={180} value={why} onChange={(event) => setWhy(event.target.value)} placeholder="To build a career I care about." className="mt-1.5 w-full rounded-xl border border-sand bg-ivory px-4 py-3 text-sm text-ink focus:border-champagne focus:ring-2 focus:ring-champagne/20" />
           <p className="mt-3 rounded-xl bg-ivory px-3 py-2.5 text-xs text-mist">
             Your first task starts today. The rest follow one per day.
           </p>

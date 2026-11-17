@@ -14,6 +14,7 @@ create table if not exists public.goals (
   user_id       uuid        not null references auth.users(id) on delete cascade,
   name          text        not null,
   daily_minutes integer     not null default 60,
+  why           text        not null default '',
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now(),
 
@@ -21,6 +22,8 @@ create table if not exists public.goals (
   constraint goals_daily_minutes_range check (daily_minutes > 0 and daily_minutes <= 1440),
   constraint goals_user_name_unique    unique (user_id, name)
 );
+
+alter table public.goals add column if not exists why text not null default '';
 
 -- Tasks: the ordered queue per goal
 create table if not exists public.tasks (

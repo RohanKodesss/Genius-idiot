@@ -190,10 +190,12 @@ export default function Settings() {
                 Cancel
               </Button>
               <Button
+                disabled={!editing.name.trim() || !editing.why?.trim()}
                 onClick={async () => {
                   const res = await updateGoal(editing.id, {
                     name: editing.name.trim(),
                     daily_minutes: Number(editing.daily_minutes),
+                    why: (editing.why ?? '').trim(),
                   });
                   if (res?.ok) setEditing(null);
                 }}
@@ -210,6 +212,13 @@ export default function Settings() {
               maxLength={60}
               required
               onChange={(event) => setEditing({ ...editing, name: event.target.value })}
+            />
+            <Input
+              label="Why does this goal matter to you?"
+              value={editing.why ?? ''}
+              maxLength={180}
+              required
+              onChange={(event) => setEditing({ ...editing, why: event.target.value })}
             />
             <Input
               label="Daily minutes"

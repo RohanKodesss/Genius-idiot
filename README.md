@@ -66,6 +66,9 @@ Demo mode is also your insurance: if the network or auth dies during a demo, set
 
 Open your project → **SQL Editor** → paste all of `supabase/schema.sql` → **Run**.
 
+If your project already has the original tables, run
+`supabase/migrations/20261117_add_goal_why.sql` in the SQL Editor to add the goal “Why” and task note fields.
+
 That single file creates:
 
 | Object | What it is |

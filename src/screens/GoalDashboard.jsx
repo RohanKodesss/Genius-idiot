@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { format } from 'date-fns';
-import { ArrowLeft, CalendarDays, ExternalLink, Flame, Moon, Target } from 'lucide-react';
+import { ArrowLeft, ArrowUpRight, CalendarDays, ExternalLink, Flame, Moon, Target } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { fromDay } from '../lib/dates';
 import { Badge, Button, Card, EmptyState } from '../components/ui';
@@ -46,6 +46,7 @@ export default function GoalDashboard() {
     unmarkRestDay,
     completeTask,
     trimLast,
+    reorderTask,
     notify,
   } = useApp();
 
@@ -173,6 +174,19 @@ export default function GoalDashboard() {
               onFinish={(minutes) => completeTask(todayTask.id, minutes)}
             />
           </div>
+          {projection[1] && (
+            <Button
+              className="mt-3"
+              variant="secondary"
+              onClick={async () => {
+                const result = await reorderTask(projection[1].id, todayTask.order);
+                if (result?.ok) notify('Next task moved into today. Planned dates stay as recorded.', 'success');
+              }}
+            >
+              <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
+              Pull next task into today
+            </Button>
+          )}
         </Card>
       )}
 

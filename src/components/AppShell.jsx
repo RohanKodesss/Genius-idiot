@@ -17,6 +17,7 @@ import { formatDay } from '../lib/dates';
 import BrandLogo from './BrandLogo';
 import ThemeToggle from './ThemeToggle';
 import useFocusTrap from './useFocusTrap';
+import HibernationControl from './HibernationControl';
 
 function MenuItem({ to, icon: Icon, label, onNavigate, end = false }) {
   return (
@@ -112,6 +113,11 @@ function SidePanel({ onNavigate, compact = false }) {
           )}
         </div>
       </nav>
+
+      <div className="border-t border-sand pt-3">
+        <p className="px-2 text-xs font-semibold text-mist">Take a break</p>
+        <HibernationControl />
+      </div>
 
       <div className={`rounded-2xl bg-obsidian p-4 shadow-card ${compact ? '' : 'mt-auto'}`}>
         <div className="flex items-center justify-between">

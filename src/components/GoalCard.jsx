@@ -1,4 +1,5 @@
 import { Link } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { ExternalLink, Moon, RotateCcw } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { formatDay } from '../lib/dates';
@@ -99,9 +100,17 @@ export default function GoalCard({ goal, projection, streak, progress, restToday
       </div>
 
       {doneToday && (
-        <div className="mt-4 rounded-xl bg-ivory border border-sand px-3 py-2">
+        <motion.div
+          initial={{ opacity: 0, y: 8 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.22, ease: 'easeOut' }}
+          className="mt-4 rounded-xl border border-sage/25 bg-sage/5 px-4 py-3"
+          role="status"
+        >
+          <p className="text-sm font-medium text-ink">Day {streak.current} complete.</p>
+          <p className="mt-1 text-xs leading-relaxed text-slate">Your queue is on track. See you tomorrow.</p>
           <p className="text-xs text-slate break-words">
-            Done today · {doneToday.title}
+            Completed · {doneToday.title}
             {doneToday.minutes_spent != null && (
               <span className="text-mist tabular-nums"> · {doneToday.minutes_spent} min</span>
             )}
@@ -120,7 +129,7 @@ export default function GoalCard({ goal, projection, streak, progress, restToday
             <RotateCcw className="w-3 h-3" aria-hidden="true" />
             Undo
           </button>
-        </div>
+        </motion.div>
       )}
 
       <footer className="mt-4 border-t border-sand pt-3">

@@ -14,6 +14,7 @@ import { computeOverallStreak, computeStreak } from '../lib/streaks';
 import { buildHeatmap } from '../lib/heatmap';
 import { computeProgress, computeTodayTotals } from '../lib/progress';
 import { mapTemplateToRows } from '../lib/templateParser';
+import { buildHibernationRestDays } from '../lib/hibernation';
 
 const AppContext = createContext(null);
 const EMPTY = { goals: [], tasks: [], restDays: [] };
@@ -259,12 +260,13 @@ export function AppProvider({ children }) {
     }
   };
 
-  const addGoal = async ({ name, daily_minutes }) => {
+  const addGoal = async ({ name, daily_minutes, why }) => {
     const goal = {
       id: uuid(),
       user_id: authUser?.id,
       name: name.trim(),
       daily_minutes,
+      why: why.trim(),
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -284,7 +286,7 @@ export function AppProvider({ children }) {
     return { ...res, data: goal };
   };
 
-  const createGoalFromTemplate = async (template) => {
+  const createGoalFromTemplate = async (template, why) => {
     const createdAt = new Date().toISOString();
     const { goal, tasks } = mapTemplateToRows(template, {
       goalId: uuid(),
@@ -293,6 +295,7 @@ export function AppProvider({ children }) {
       createdAt,
       taskIds: template.tasks.map(() => uuid()),
     });
+    goal.why = why.trim();
 
     const goalResult = await repo.createGoal(goal);
     if (!goalResult.ok) {
@@ -465,6 +468,35 @@ export function AppProvider({ children }) {
     }
   };
 
+  const hibernate = async (days) => {
+    let additions;
+    try {
+      additions = buildHibernationRestDays({
+        goals: data.goals,
+        restDays: data.restDays ?? [],
+        today,
+        days,
+        createId: uuid,
+        createdAt: new Date().toISOString(),
+      });
+    } catch (error) {
+      notify(error.message, 'error');
+      return { ok: false, message: error.message };
+    }
+    if (!additions.length) return { ok: true, data: [] };
+    setData((current) => ({ ...current, restDays: [...current.restDays, ...additions] }));
+    const results = await Promise.all(additions.map((row) => repo.markRestDay(row.goal_id, row.date)));
+    const failed = results.find((result) => !result.ok);
+    if (failed) {
+      setData((current) => ({ ...current, restDays: current.restDays.filter((row) => !additions.some((added) => added.id === row.id)) }));
+      await Promise.all(additions.map((row) => repo.unmarkRestDay(row.goal_id, row.date)));
+      notify(explainSaveFailure(failed, "Couldn't pause your queues. Try again."), 'error');
+      return failed;
+    }
+    notify(`Your queues are resting for ${days} day${days === 1 ? '' : 's'}.`, 'success');
+    return { ok: true, data: additions };
+  };
+
   const unmarkRestDay = async (goalId, date) => {
     const original = data.restDays;
     setData((current) => ({
@@ -588,6 +620,7 @@ export function AppProvider({ children }) {
     reorderTask,
     markRestDay,
     unmarkRestDay,
+    hibernate,
     trimLast,
   };
 

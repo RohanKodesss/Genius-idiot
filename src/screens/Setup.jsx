@@ -17,6 +17,7 @@ export default function Setup() {
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [minutes, setMinutes] = useState('60');
+  const [why, setWhy] = useState('');
   const [selected, setSelected] = useState(goals[0]?.id ?? null);
   const [method, setMethod] = useState('cards');
   const [busy, setBusy] = useState(false);
@@ -52,10 +53,11 @@ export default function Setup() {
   const create = async (event) => {
     event.preventDefault();
     setBusy(true);
-    const res = await addGoal({ name, daily_minutes: Number(minutes) });
+    const res = await addGoal({ name, daily_minutes: Number(minutes), why });
     setBusy(false);
     if (res.ok) {
       setName('');
+      setWhy('');
       setMinutes('60');
       setSelected(res.data.id);
     }
@@ -112,6 +114,9 @@ export default function Setup() {
               value={minutes}
               onChange={(event) => setMinutes(event.target.value)}
             />
+            <div className="sm:col-span-3">
+              <Input label="Why does this goal matter to you?" placeholder="To build a career I care about." required maxLength={180} value={why} onChange={(event) => setWhy(event.target.value)} />
+            </div>
             <Button type="submit" disabled={busy || !name.trim()}>
               <Plus className="w-4 h-4" aria-hidden="true" />
               Add goal
