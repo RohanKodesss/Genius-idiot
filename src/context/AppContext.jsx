@@ -468,16 +468,18 @@ export function AppProvider({ children }) {
     }
   };
 
-  const hibernate = async (days) => {
+  const hibernate = async ({ days, goalIds }) => {
     let additions;
+    const selectedGoals = data.goals.filter((goal) => goalIds.includes(goal.id));
     try {
       additions = buildHibernationRestDays({
-        goals: data.goals,
+        goals: selectedGoals,
         restDays: data.restDays ?? [],
         today,
         days,
         createId: uuid,
         createdAt: new Date().toISOString(),
+        hibernationId: uuid(),
       });
     } catch (error) {
       notify(error.message, 'error');
@@ -485,16 +487,32 @@ export function AppProvider({ children }) {
     }
     if (!additions.length) return { ok: true, data: [] };
     setData((current) => ({ ...current, restDays: [...current.restDays, ...additions] }));
-    const results = await Promise.all(additions.map((row) => repo.markRestDay(row.goal_id, row.date)));
+    const results = await Promise.all(additions.map((row) => repo.markRestDay(row.goal_id, row.date, row.hibernation_id)));
     const failed = results.find((result) => !result.ok);
     if (failed) {
       setData((current) => ({ ...current, restDays: current.restDays.filter((row) => !additions.some((added) => added.id === row.id)) }));
-      await Promise.all(additions.map((row) => repo.unmarkRestDay(row.goal_id, row.date)));
+      await repo.cancelHibernation(additions[0].hibernation_id, today);
       notify(explainSaveFailure(failed, "Couldn't pause your queues. Try again."), 'error');
       return failed;
     }
-    notify(`Your queues are resting for ${days} day${days === 1 ? '' : 's'}.`, 'success');
+    notify(`${selectedGoals.map((goal) => goal.name).join(', ')} ${selectedGoals.length === 1 ? 'is' : 'are'} resting for ${days} day${days === 1 ? '' : 's'}.`, 'success');
     return { ok: true, data: additions };
+  };
+
+  const cancelHibernation = async (hibernationId) => {
+    const original = data.restDays;
+    setData((current) => ({
+      ...current,
+      restDays: current.restDays.filter((row) => row.hibernation_id !== hibernationId || row.date < today),
+    }));
+    const res = await repo.cancelHibernation(hibernationId, today);
+    if (!res.ok) {
+      setData((current) => ({ ...current, restDays: original }));
+      notify(explainSaveFailure(res, "Couldn't cancel hibernation. Try again."), 'error');
+      return res;
+    }
+    notify('Hibernation cancelled. Your queue is active again.', 'success');
+    return res;
   };
 
   const unmarkRestDay = async (goalId, date) => {
@@ -621,6 +639,7 @@ export function AppProvider({ children }) {
     markRestDay,
     unmarkRestDay,
     hibernate,
+    cancelHibernation,
     trimLast,
   };
 

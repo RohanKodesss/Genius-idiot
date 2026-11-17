@@ -8,6 +8,8 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  PanelLeftClose,
+  PanelLeftOpen,
   Plus,
   Settings,
   X,
@@ -160,11 +162,29 @@ function SidePanel({ onNavigate, compact = false }) {
 export default function AppShell() {
   const { authUser, demoMode, logOut, today } = useApp();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [sidebarOpen, setSidebarOpen] = useState(() => {
+    try {
+      return localStorage.getItem('gi:desktop-sidebar-open') !== 'false';
+    } catch {
+      return true;
+    }
+  });
   const drawerRef = useRef(null);
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const close = () => setDrawerOpen(false);
   const initial = authUser?.email?.[0]?.toUpperCase() ?? 'G';
+  const toggleSidebar = () => {
+    setSidebarOpen((current) => {
+      const next = !current;
+      try {
+        localStorage.setItem('gi:desktop-sidebar-open', String(next));
+      } catch {
+        // The toggle remains usable for this session when storage is blocked.
+      }
+      return next;
+    });
+  };
 
   // A route change (including browser back) always leaves the drawer closed.
   useEffect(() => {
@@ -186,12 +206,24 @@ export default function AppShell() {
   return (
     <div className="min-h-screen w-full bg-parchment">
       <div className="flex min-h-screen w-full flex-col bg-parchment sm:flex-row">
-        <aside className="hidden w-64 shrink-0 flex-col border-r border-sand bg-parchment p-5 lg:flex xl:w-[272px]">
-          <SidePanel />
-        </aside>
+        {sidebarOpen && (
+          <aside className="hidden w-64 shrink-0 flex-col border-r border-sand bg-parchment p-5 lg:flex xl:w-[272px]">
+            <SidePanel />
+          </aside>
+        )}
 
         <div className="flex min-w-0 flex-1 flex-col">
           <header className="sticky top-0 z-30 flex items-center gap-2 border-b border-sand bg-parchment px-4 py-3 sm:gap-3 sm:px-6 lg:px-8">
+            <button
+              type="button"
+              onClick={toggleSidebar}
+              aria-label={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+              aria-expanded={sidebarOpen}
+              title={sidebarOpen ? 'Close sidebar' : 'Open sidebar'}
+              className="hidden h-11 w-11 shrink-0 place-items-center rounded-xl border border-transparent text-slate hover:border-sand hover:bg-ivory hover:text-ink lg:grid"
+            >
+              {sidebarOpen ? <PanelLeftClose className="h-5 w-5" aria-hidden="true" /> : <PanelLeftOpen className="h-5 w-5" aria-hidden="true" />}
+            </button>
             <button
               type="button"
               onClick={() => setDrawerOpen(true)}

@@ -52,4 +52,17 @@ describe('demo repository persistence for new features', () => {
     const refreshed = await local.fetchAll();
     expect(refreshed.data.restDays.filter((row) => row.date === '2026-11-17')).toHaveLength(data.goals.length);
   });
+
+  it('cancels only current and future rows owned by a hibernation', async () => {
+    const goalId = 'hibernate-test';
+    await local.markRestDay(goalId, '2026-11-17');
+    await local.markRestDay(goalId, '2026-11-16', 'session-a');
+    await local.markRestDay(goalId, '2026-11-18', 'session-a');
+    expect((await local.cancelHibernation('session-a', '2026-11-17')).ok).toBe(true);
+    const remaining = (await local.fetchAll()).data.restDays.filter((row) => row.goal_id === goalId);
+    expect(remaining.sort((a, b) => a.date.localeCompare(b.date)).map((row) => [row.date, row.hibernation_id])).toEqual([
+      ['2026-11-16', 'session-a'],
+      ['2026-11-17', null],
+    ]);
+  });
 });

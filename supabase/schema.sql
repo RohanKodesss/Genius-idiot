@@ -55,10 +55,13 @@ create table if not exists public.rest_days (
   id         uuid        primary key default gen_random_uuid(),
   goal_id    uuid        not null references public.goals(id) on delete cascade,
   date       date        not null,
+  hibernation_id uuid,
   created_at timestamptz not null default now(),
 
   constraint rest_days_goal_date_unique unique (goal_id, date)
 );
+
+alter table public.rest_days add column if not exists hibernation_id uuid;
 
 -- Notes: one free-text note per task. `create table if not exists` above
 -- does not add columns to a database that already exists, so this does.
@@ -82,6 +85,10 @@ create index if not exists tasks_goal_id_completed_idx
 
 create index if not exists rest_days_goal_id_date_idx
   on public.rest_days (goal_id, date);
+
+create index if not exists rest_days_hibernation_id_idx
+  on public.rest_days (hibernation_id)
+  where hibernation_id is not null;
 
 -- ────────────────────────────────────────────────────────────
 -- 3. UPDATED_AT TRIGGERS
