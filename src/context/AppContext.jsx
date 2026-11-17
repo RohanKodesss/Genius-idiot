@@ -353,6 +353,10 @@ export function AppProvider({ children }) {
     const res = await repo.toggleGoalVisibility(goalId, isPublic);
     if (!res.ok) {
       setData((current) => ({ ...current, goals: current.goals.map((goal) => goal.id === goalId ? original : goal) }));
+      if (['PGRST202', 'PGRST204', 'PGRST205', '42P01', '42703'].includes(res.code)) {
+        notify('Public roadmap database changes are missing. Run supabase/migrations/20261117_public_roadmap.sql in the Supabase SQL Editor, then retry.', 'error');
+        return res;
+      }
       notify(explainSaveFailure(res, "Couldn't update sharing. Try again."), 'error');
       return res;
     }

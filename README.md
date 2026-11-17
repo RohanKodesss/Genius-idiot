@@ -66,8 +66,12 @@ Demo mode is also your insurance: if the network or auth dies during a demo, set
 
 Open your project → **SQL Editor** → paste all of `supabase/schema.sql` → **Run**.
 
-If your project already has the original tables, run
-`supabase/migrations/20261117_add_goal_why.sql` in the SQL Editor to add the goal “Why” and task note fields.
+If your project already has the original tables, run these migrations in the SQL Editor:
+
+1. `supabase/migrations/20261117_add_goal_why.sql` adds the goal “Why” and task note fields.
+2. `supabase/migrations/20261117_public_roadmap.sql` adds public roadmap sharing. Run this before using **Share roadmap**; it installs the visibility columns, restricted public read function, and RLS policies.
+
+After running a migration, reload the app so PostgREST can use the refreshed schema cache.
 
 That single file creates:
 
@@ -76,6 +80,7 @@ That single file creates:
 | `public.goals` | one row per goal (name, daily minutes) |
 | `public.tasks` | the ordered queue (`"order"`, `planned_date`, `completed_at`) |
 | `public.rest_days` | one row per goal per rest day |
+| `public.get_public_roadmap(uuid)` | safe, read-only public roadmap projection |
 | indexes | FK lookups, ordered queues, completed-task partial index |
 | triggers | `updated_at` maintained by Postgres |
 | RLS policies | 6 policies; every row is private to its owner |
