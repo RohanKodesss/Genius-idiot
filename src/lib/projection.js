@@ -52,19 +52,23 @@ export function maxShift(tasks, today, restDays = []) {
 }
 
 
-// Shift as it stood at the start of each of the last `days` days.
-// A day's shift = how far the first still-pending task had slipped by then.
-export function computeShiftHistory(tasks, today, days = 30) {
+// Shift as it stood at the end of each of the last `days` days.
+// A day's shift = how far the first still-pending task had slipped by then,
+// counting rest days the same way the projection does.
+export function computeShiftHistory(tasks, today, restDays = [], days = 30) {
   const queue = [...tasks].sort((a, b) => a.order - b.order);
+  const rest = restSet(restDays);
   const history = [];
   for (let offset = days - 1; offset >= 0; offset -= 1) {
     const day = addDay(today, -offset);
     const firstPending = queue.find(
       (task) => !task.completed_at || dayOf(task.completed_at) > day,
     );
+    let projected = day;
+    while (firstPending && rest.has(projected)) projected = addDay(projected, 1);
     history.push({
       date: day,
-      shift: firstPending ? Math.max(0, diffDay(day, firstPending.planned_date)) : 0,
+      shift: firstPending ? Math.max(0, diffDay(projected, firstPending.planned_date)) : 0,
     });
   }
   return history;

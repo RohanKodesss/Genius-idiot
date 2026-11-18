@@ -190,9 +190,16 @@ export function AppProvider({ children }) {
   const shiftHistoryByGoal = useMemo(
     () =>
       Object.fromEntries(
-        data.goals.map((goal) => [goal.id, computeShiftHistory(tasksByGoal[goal.id] ?? [], today)]),
+        data.goals.map((goal) => [
+          goal.id,
+          computeShiftHistory(
+            tasksByGoal[goal.id] ?? [],
+            today,
+            restDaysByGoal[goal.id] ?? [],
+          ),
+        ]),
       ),
-    [data.goals, tasksByGoal, today],
+    [data.goals, tasksByGoal, restDaysByGoal, today],
   );
 
   const maxShiftByGoal = useMemo(
