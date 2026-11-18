@@ -5,8 +5,9 @@ import { roadmapTemplates } from '../lib/templates';
 import { useApp } from '../context/AppContext';
 import { Button } from './ui';
 import Modal from './Modal';
+import ScrollReveal from './motion/ScrollReveal';
 
-export default function TemplateGallery({ className = '' }) {
+export default function TemplateGallery({ className = '', vertical = false }) {
   const { createGoalFromTemplate, notify } = useApp();
   const navigate = useNavigate();
   const [selected, setSelected] = useState(null);
@@ -39,28 +40,29 @@ export default function TemplateGallery({ className = '' }) {
         </p>
       </div>
 
-      <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
+      <div className={`grid gap-3 ${vertical ? '' : 'sm:grid-cols-2 xl:grid-cols-4'}`}>
         {roadmapTemplates.map((template, index) => (
-          <article
-            key={template.id}
-            className="surface-card surface-card--interactive flex min-w-0 flex-col rounded-2xl p-4 sm:p-5"
-          >
-            <span className={`grid h-10 w-10 place-items-center rounded-xl ${index % 2 ? 'bg-sage/10 text-sage' : 'bg-champagne/10 text-champagne'}`}>
-              <BookOpen className="h-5 w-5" aria-hidden="true" />
-            </span>
-            <h3 className="mt-4 break-words font-display text-xl leading-tight text-ink">
-              {template.title}
-            </h3>
-            <p className="mt-2 min-h-10 text-sm leading-relaxed text-slate">
-              {template.description}
-            </p>
-            <p className="mt-4 text-xs tabular-nums text-mist">
-              {template.tasks.length} tasks · {template.daily_minutes} min/day
-            </p>
-            <Button className="mt-4 w-full" variant="secondary" onClick={() => setSelected(template)}>
-              Use template <ArrowRight className="h-4 w-4" aria-hidden="true" />
-            </Button>
-          </article>
+          <ScrollReveal key={template.id} delay={index * 0.08}>
+            <article
+              className="surface-card surface-card--interactive flex min-w-0 h-full flex-col rounded-2xl p-4 sm:p-5"
+            >
+              <span className={`grid h-10 w-10 place-items-center rounded-xl ${index % 2 ? 'bg-sage/10 text-sage' : 'bg-champagne/10 text-champagne'}`}>
+                <BookOpen className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <h3 className="mt-4 break-words font-display text-xl leading-tight text-ink">
+                {template.title}
+              </h3>
+              <p className="mt-2 min-h-10 text-sm leading-relaxed text-slate">
+                {template.description}
+              </p>
+              <p className="mt-4 text-xs tabular-nums text-mist">
+                {template.tasks.length} tasks · {template.daily_minutes} min/day
+              </p>
+              <Button className="mt-4 w-full" variant="secondary" onClick={() => setSelected(template)}>
+                Use template <ArrowRight className="h-4 w-4" aria-hidden="true" />
+              </Button>
+            </article>
+          </ScrollReveal>
         ))}
       </div>
 

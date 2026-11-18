@@ -124,98 +124,105 @@ export default function Setup() {
           </form>
         </Card>
 
-        <TemplateGallery className="mt-8" />
+        {goals.length === 0 ? (
+          <TemplateGallery className="mt-8" />
+        ) : (
+          <div className="mt-8 grid items-start gap-6 lg:grid-cols-[minmax(0,22rem)_minmax(0,1fr)]">
+            <TemplateGallery
+              vertical
+              className="order-2 lg:order-1 lg:sticky lg:top-6"
+            />
 
-        {goals.length > 0 && (
-          <Card className="mt-6">
-            <h2 className="font-display text-xl text-ink">Import a roadmap</h2>
-            <p className="mt-1 text-sm text-slate">
-              Pick a goal, then build cards, paste Markdown, or paste any list. Every method uses a
-              start date and one task per day.
-            </p>
+            <Card className="order-1 min-w-0 lg:order-2">
+              <h2 className="font-display text-xl text-ink">Import a roadmap</h2>
+              <p className="mt-1 text-sm text-slate">
+                Pick a goal, then build cards, paste Markdown, or paste any list. Every method uses a
+                start date and one task per day.
+              </p>
 
-            <div className="mt-4 flex flex-wrap gap-2">
-              {goals.map((goal) => {
-                const active = selectedGoal?.id === goal.id;
-                const done = taskCount(goal.id) > 0;
-                return (
-                  <button
-                    key={goal.id}
-                    type="button"
-                    onClick={() => setSelected(goal.id)}
-                    aria-pressed={active}
-                    className={`inline-flex min-h-[44px] max-w-full items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition ${
-                      active
-                        ? 'bg-sand text-ink border-sand'
-                        : 'bg-ivory text-ink border-sand hover:border-ink'
-                    }`}
-                  >
-                    {done && <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-sage" aria-hidden="true" />}
-                    <span className="min-w-0 break-words">{goal.name}</span>
-                    <span className="shrink-0 text-mist">
-                      {taskCount(goal.id)}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-
-            {selectedGoal && (
-              <div className="mt-6">
-                <div
-                  role="tablist"
-                  aria-label="Roadmap entry method"
-                  className="mb-5 grid w-full grid-cols-1 gap-1 rounded-xl border border-sand bg-ivory p-1 sm:inline-flex sm:w-auto"
-                >
-                  {[
-                    { id: 'cards', label: 'Card builder' },
-                    { id: 'markdown', label: 'Markdown' },
-                    { id: 'paste', label: 'Quick paste' },
-                  ].map((tab) => (
+              <div className="mt-4 flex flex-wrap gap-2">
+                {goals.map((goal) => {
+                  const active = selectedGoal?.id === goal.id;
+                  const done = taskCount(goal.id) > 0;
+                  return (
                     <button
-                      key={tab.id}
-                      role="tab"
+                      key={goal.id}
                       type="button"
-                      aria-selected={method === tab.id}
-                      onClick={() => setMethod(tab.id)}
-                      className={`min-h-[44px] whitespace-nowrap rounded-lg px-3 py-2 text-sm transition ${
-                        method === tab.id
-                          ? 'bg-sand text-ink'
-                          : 'text-slate hover:text-ink'
+                      onClick={() => setSelected(goal.id)}
+                      aria-pressed={active}
+                      className={`inline-flex min-h-[44px] max-w-full items-center gap-1.5 rounded-full border px-3 py-1.5 text-sm transition ${
+                        active
+                          ? 'bg-sand text-ink border-sand'
+                          : 'bg-ivory text-ink border-sand hover:border-ink'
                       }`}
                     >
-                      {tab.label}
+                      {done && <CheckCircle2 className="w-3.5 h-3.5 shrink-0 text-sage" aria-hidden="true" />}
+                      <span className="min-w-0 break-words">{goal.name}</span>
+                      <span className="shrink-0 text-mist">
+                        {taskCount(goal.id)}
+                      </span>
                     </button>
-                  ))}
-                </div>
-
-                {method === 'cards' && (
-                  <TaskCardBuilder
-                    key={`cards-${selectedGoal.id}`}
-                    startDay={today}
-                    importLabel={`Add to ${selectedGoal.name}`}
-                    onImport={handleImport}
-                  />
-                )}
-                {method === 'markdown' && (
-                  <MarkdownImporter
-                    key={`md-${selectedGoal.id}`}
-                    startDay={today}
-                    importLabel={`Import into ${selectedGoal.name}`}
-                    onImport={handleImport}
-                  />
-                )}
-                {method === 'paste' && (
-                  <QuickImport
-                    key={`paste-${selectedGoal.id}`}
-                    startDay={today}
-                    importLabel={`Add to ${selectedGoal.name}`}
-                    onImport={handleImport}
-                  />
-                )}
+                  );
+                })}
               </div>
-            )}
-          </Card>
+
+              {selectedGoal && (
+                <div className="mt-6">
+                  <div
+                    role="tablist"
+                    aria-label="Roadmap entry method"
+                    className="mb-5 grid w-full grid-cols-1 gap-1 rounded-xl border border-sand bg-ivory p-1 sm:inline-flex sm:w-auto"
+                  >
+                    {[
+                      { id: 'cards', label: 'Card builder' },
+                      { id: 'markdown', label: 'Markdown' },
+                      { id: 'paste', label: 'Quick paste' },
+                    ].map((tab) => (
+                      <button
+                        key={tab.id}
+                        role="tab"
+                        type="button"
+                        aria-selected={method === tab.id}
+                        onClick={() => setMethod(tab.id)}
+                        className={`min-h-[44px] whitespace-nowrap rounded-lg px-3 py-2 text-sm transition ${
+                          method === tab.id
+                            ? 'bg-sand text-ink'
+                            : 'text-slate hover:text-ink'
+                        }`}
+                      >
+                        {tab.label}
+                      </button>
+                    ))}
+                  </div>
+
+                  {method === 'cards' && (
+                    <TaskCardBuilder
+                      key={`cards-${selectedGoal.id}`}
+                      startDay={today}
+                      importLabel={`Add to ${selectedGoal.name}`}
+                      onImport={handleImport}
+                    />
+                  )}
+                  {method === 'markdown' && (
+                    <MarkdownImporter
+                      key={`md-${selectedGoal.id}`}
+                      startDay={today}
+                      importLabel={`Import into ${selectedGoal.name}`}
+                      onImport={handleImport}
+                    />
+                  )}
+                  {method === 'paste' && (
+                    <QuickImport
+                      key={`paste-${selectedGoal.id}`}
+                      startDay={today}
+                      importLabel={`Add to ${selectedGoal.name}`}
+                      onImport={handleImport}
+                    />
+                  )}
+                </div>
+              )}
+            </Card>
+          </div>
         )}
 
         <div className="mt-8 flex flex-col items-stretch gap-3 sm:flex-row sm:flex-wrap sm:items-center sm:justify-between">
