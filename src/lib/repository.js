@@ -215,7 +215,12 @@ export async function getRestDaysForGoal(goalId) {
 // ── Goals ───────────────────────────────────────────────────────────────────
 export async function createGoal(goal) {
   if (DEMO_MODE) return local.createGoal(goal);
-  return unwrap(await supabase.from('goals').insert(goal).select());
+  // `public_id` and `is_public` are database-managed and only exist after the
+  // public-roadmap migration. Sending them from the client made every goal
+  // insert fail with PGRST204 on projects that had not run it yet. The defaults
+  // fill them in when the columns exist; older schemas simply ignore the feature.
+  const { public_id: _publicId, is_public: _isPublic, ...row } = goal;
+  return unwrap(await supabase.from('goals').insert(row).select());
 }
 
 export async function updateGoal(goalId, patch) {
