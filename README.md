@@ -142,6 +142,7 @@ Copy `.env.example` to `.env`:
 VITE_SUPABASE_URL=https://<project-ref>.supabase.co
 VITE_SUPABASE_ANON_KEY=<publishable / anon key>
 VITE_DEMO_MODE=false
+VITE_TURNSTILE_SITE_KEY=<optional Cloudflare Turnstile site key>
 ```
 
 - Use the **publishable / anon** key. **Never** put the `service_role` key in a frontend env var.
@@ -173,13 +174,28 @@ Password reset emails use the same settings: the link returns the user to
 To test confirmation emails on the built-in SMTP, use a project-team email address or configure a
 custom SMTP. With Confirm email off, the app also accepts the session straight after signup.
 
+### 3.4 Login CAPTCHA (optional)
+
+Signup, login, password reset, and resend can be protected with Cloudflare Turnstile. The widget
+stays hidden until a site key is configured, so the app keeps working without it.
+
+1. Create a Turnstile widget in the Cloudflare dashboard for `genius-idiot.vercel.app` (and
+   `localhost` for development). Copy the **site key**.
+2. Set `VITE_TURNSTILE_SITE_KEY` in `.env.production` or the Vercel environment variables, then
+   rebuild.
+3. In Supabase → Authentication → Attack Protection, enable bot protection, choose **Turnstile**,
+   and paste the **secret key**.
+
+Both halves are required. A site key without the Supabase secret shows the widget but does not
+protect auth; the Supabase secret without a site key makes login fail because no token is sent.
+
 ---
 
 ## 4. Your first five minutes
 
 1. **Create an account.** The app opens on account creation; a new user cannot get in without
-   signing up and confirming the email. Existing users switch to **Log in**. In demo mode any
-   credentials work. The public overview is at `/welcome`, with the simulator and FAQ.
+   signing up. Existing users switch to **Log in**. In demo mode any credentials work. The public
+   overview is at `/welcome`, with the simulator and FAQ.
 2. **Set up a goal.** Name it (`DSA`), set daily minutes (`60`), write one line about why it matters,
    press **Add goal**.
 3. **Add its roadmap** — four ways, same result:

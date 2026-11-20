@@ -566,8 +566,8 @@ export function AppProvider({ children }) {
     }
   };
 
-  const logIn = async (email, password) => {
-    const res = await repo.logIn(email, password);
+  const logIn = async (email, password, captchaToken) => {
+    const res = await repo.logIn(email, password, captchaToken);
     if (res.ok) {
       setAuthUser(res.data);
       await reload();
@@ -575,8 +575,8 @@ export function AppProvider({ children }) {
     return res;
   };
 
-  const signUp = async (email, password) => {
-    const res = await repo.signUp(email, password);
+  const signUp = async (email, password, captchaToken) => {
+    const res = await repo.signUp(email, password, captchaToken);
     if (res.ok && res.data && !res.needsConfirmation) {
       setAuthUser(res.data);
       await reload();
@@ -584,9 +584,11 @@ export function AppProvider({ children }) {
     return res;
   };
 
-  const resendConfirmation = async (email) => repo.resendConfirmation(email);
+  const resendConfirmation = async (email, captchaToken) =>
+    repo.resendConfirmation(email, captchaToken);
 
-  const requestPasswordReset = async (email) => repo.requestPasswordReset(email);
+  const requestPasswordReset = async (email, captchaToken) =>
+    repo.requestPasswordReset(email, captchaToken);
 
   // Stable so the reset screen can run it once on mount.
   const completePasswordRecovery = useCallback(async () => {

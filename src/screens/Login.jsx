@@ -4,6 +4,8 @@ import { ArrowLeft, MailCheck } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { Button, Input, Spinner } from '../components/ui';
 import AuthLayout from '../components/AuthLayout';
+import Turnstile from '../components/Turnstile';
+import { CAPTCHA_ENABLED } from '../lib/captcha';
 
 export default function Login() {
   const { authUser, logIn, signUp, resendConfirmation, requestPasswordReset, demoMode } =
@@ -20,7 +22,16 @@ export default function Login() {
   // Set after a signup that still needs the email confirmed.
   const [pendingEmail, setPendingEmail] = useState('');
   const [cooldown, setCooldown] = useState(0);
+  const [captchaToken, setCaptchaToken] = useState('');
+  const [captchaKey, setCaptchaKey] = useState(0);
   const navigate = useNavigate();
+
+  const captchaRequired = CAPTCHA_ENABLED && !demoMode;
+  // Turnstile tokens are single-use, so remount the widget after every attempt.
+  const resetCaptcha = () => {
+    setCaptchaToken('');
+    setCaptchaKey((key) => key + 1);
+  };
 
   useEffect(() => {
     if (cooldown <= 0) return undefined;
@@ -36,13 +47,18 @@ export default function Login() {
 
   const submit = async (event) => {
     event.preventDefault();
-    setBusy(true);
     setError('');
     setNotice('');
+    if (captchaRequired && !captchaToken) {
+      setError('Complete the CAPTCHA first.');
+      return;
+    }
+    setBusy(true);
 
     if (mode === 'forgot') {
-      const res = await requestPasswordReset(email.trim());
+      const res = await requestPasswordReset(email.trim(), captchaToken);
       setBusy(false);
+      resetCaptcha();
       if (!res.ok) {
         setError(res.message);
         return;
@@ -55,8 +71,12 @@ export default function Login() {
       return;
     }
 
-    const res = mode === 'login' ? await logIn(email, password) : await signUp(email, password);
+    const res =
+      mode === 'login'
+        ? await logIn(email, password, captchaToken)
+        : await signUp(email, password, captchaToken);
     setBusy(false);
+    resetCaptcha();
 
     if (!res.ok) {
       setError(res.message);
@@ -71,11 +91,16 @@ export default function Login() {
   };
 
   const resend = async () => {
-    setBusy(true);
     setError('');
     setNotice('');
-    const res = await resendConfirmation(pendingEmail);
+    if (captchaRequired && !captchaToken) {
+      setError('Complete the CAPTCHA first.');
+      return;
+    }
+    setBusy(true);
+    const res = await resendConfirmation(pendingEmail, captchaToken);
     setBusy(false);
+    resetCaptcha();
     if (!res.ok) {
       setError(res.message);
       return;
@@ -117,6 +142,10 @@ export default function Login() {
               <p role="status" className="text-sm text-sage">
                 {notice}
               </p>
+            )}
+
+            {captchaRequired && (
+              <Turnstile key={captchaKey} onToken={setCaptchaToken} onError={setError} />
             )}
 
             <Button type="button" onClick={resend} disabled={busy || cooldown > 0}>
@@ -221,6 +250,10 @@ export default function Login() {
               <p role="status" className="text-sm text-sage">
                 {notice}
               </p>
+            )}
+
+            {captchaRequired && (
+              <Turnstile key={captchaKey} onToken={setCaptchaToken} onError={setError} />
             )}
 
             <Button type="submit" className="w-full" disabled={busy}>
