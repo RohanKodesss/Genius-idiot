@@ -1,9 +1,41 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { KeyRound, MailCheck } from 'lucide-react';
+import { CheckCircle2, Eye, EyeOff, KeyRound, MailCheck } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { BootLoader, Button, Input, Spinner } from '../components/ui';
 import AuthLayout from '../components/AuthLayout';
+
+function PasswordField({ label, value, onChange, autoComplete }) {
+  const [visible, setVisible] = useState(false);
+
+  return (
+    <div className="relative">
+      <Input
+        label={label}
+        type={visible ? 'text' : 'password'}
+        autoComplete={autoComplete}
+        required
+        minLength={6}
+        value={value}
+        onChange={onChange}
+        className="pr-14"
+      />
+      <button
+        type="button"
+        onClick={() => setVisible((current) => !current)}
+        aria-label={`${visible ? 'Hide' : 'Show'} ${label.toLowerCase()}`}
+        aria-pressed={visible}
+        className="absolute right-2 top-[29px] grid h-10 w-10 place-items-center rounded-lg text-mist transition hover:bg-sand/60 hover:text-ink"
+      >
+        {visible ? (
+          <EyeOff className="h-4 w-4" aria-hidden="true" />
+        ) : (
+          <Eye className="h-4 w-4" aria-hidden="true" />
+        )}
+      </button>
+    </div>
+  );
+}
 
 // Landing page for the Supabase recovery link. The link arrives as a PKCE code,
 // a token hash, or implicit tokens in the hash — `completePasswordRecovery`
@@ -66,40 +98,56 @@ export default function ResetPassword() {
     <AuthLayout>
         {!authUser ? (
           <div className="app-card mt-8 grid gap-4 rounded-2xl p-6 sm:p-7">
-            <MailCheck className="w-8 h-8 text-champagne" aria-hidden="true" />
-            <h1 className="font-display text-xl text-ink">This link is not active</h1>
+            <div className="grid h-12 w-12 place-items-center rounded-2xl border border-terracotta/25 bg-terracotta/10 text-terracotta">
+              <MailCheck className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <h1 className="font-display text-2xl tracking-tight text-ink">This link is not active</h1>
             <p className="text-sm text-slate">
               {linkError ||
                 'The reset link is no longer valid. Links work once and expire quickly.'}
             </p>
-            <p className="text-xs text-mist">
-              Reset links only work in the browser you requested them from, and only until they are
-              used. Request a fresh one and open it in this same browser.
+            <p className="text-xs leading-5 text-mist">
+              Return to sign in and choose “Forgot password?” to request another email.
             </p>
-            <Link to="/login?mode=login">
-              <Button className="w-full">Request a new link</Button>
+            <Link to="/login?mode=login" className="block">
+              <Button className="w-full">Back to sign in</Button>
             </Link>
           </div>
         ) : done ? (
           <div className="app-card mt-8 grid gap-4 rounded-2xl p-6 sm:p-7">
-            <KeyRound className="w-8 h-8 text-sage" aria-hidden="true" />
-            <h1 className="font-display text-xl text-ink">Password updated</h1>
+            <div className="grid h-12 w-12 place-items-center rounded-2xl border border-sage/25 bg-sage/10 text-sage">
+              <CheckCircle2 className="h-5 w-5" aria-hidden="true" />
+            </div>
+            <h1 className="font-display text-2xl tracking-tight text-ink">Password updated</h1>
             <p className="text-sm text-slate">
               {demoMode
                 ? 'Demo mode accepts any password, so nothing was stored. The flow is here so you can see what a real project does.'
                 : 'Use your new password the next time you log in. You are still signed in on this device.'}
             </p>
-            <Button onClick={() => navigate('/', { replace: true })}>Go to today</Button>
+            <Button onClick={() => navigate('/', { replace: true })} className="w-full">
+              Go to today
+            </Button>
           </div>
         ) : (
           <form
             onSubmit={submit}
             className="app-card mt-8 grid gap-4 rounded-2xl p-6 sm:p-7"
           >
-            <h1 className="font-display text-2xl tracking-tight text-ink sm:text-[28px]">Set a new password</h1>
-            <p className="text-[15px] leading-6 text-slate">
-              Signed in as <span className="text-ink">{authUser.email}</span>. Choose a password you
-              have not used here before.
+            <div className="flex items-start gap-3">
+              <span className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl border border-champagne/20 bg-champagne/10 text-champagne">
+                <KeyRound className="h-5 w-5" aria-hidden="true" />
+              </span>
+              <div>
+                <h1 className="font-display text-2xl tracking-tight text-ink sm:text-[28px]">
+                  Set a new password
+                </h1>
+                <p className="mt-1 text-sm leading-5 text-slate">
+                  Choose a password you have not used here before.
+                </p>
+              </div>
+            </div>
+            <p className="text-sm leading-6 text-slate">
+              Updating the password for <span className="text-ink">{authUser.email}</span>.
             </p>
 
             {demoMode && (
@@ -111,25 +159,19 @@ export default function ResetPassword() {
               </p>
             )}
 
-            <Input
+            <PasswordField
               label="New password"
-              type="password"
               autoComplete="new-password"
-              required
-              minLength={6}
               value={password}
               onChange={(event) => setPassword(event.target.value)}
             />
-            <Input
+            <PasswordField
               label="Confirm new password"
-              type="password"
               autoComplete="new-password"
-              required
-              minLength={6}
               value={confirm}
               onChange={(event) => setConfirm(event.target.value)}
             />
-            <p className="text-xs text-mist -mt-2">At least 6 characters.</p>
+            <p className="-mt-2 text-xs text-mist">Use at least 6 characters.</p>
 
             {error && (
               <p role="alert" className="text-sm text-bordeaux">

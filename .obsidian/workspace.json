@@ -111,12 +111,12 @@
             "state": {
               "type": "markdown",
               "state": {
-                "file": "TESTING.md",
+                "file": "issues/GENIUS_IDIOT_IMPROVEMENT_PLAN.md",
                 "mode": "source",
                 "source": false
               },
               "icon": "lucide-file",
-              "title": "TESTING"
+              "title": "GENIUS_IDIOT_IMPROVEMENT_PLAN"
             }
           }
         ],
@@ -289,6 +289,23 @@
   },
   "active": "ad3a876774edebe4",
   "lastOpenFiles": [
+    "vite.config.js.timestamp-1794842139523-64cf0fd860fdd.mjs",
+    "dist/index.html",
+    "dist/assets/particle-wave-DsxuRvtS.js",
+    "dist/assets/pencil-DCjb8vAR.js",
+    "dist/assets/Modal-DFNCPZ5t.js",
+    "dist/assets/Settings-CMQUPsjP.js",
+    "dist/assets/AuthLayout-CuwPuaRu.js",
+    "dist/assets/ResetPassword-CmAP8eNk.js",
+    "dist/assets/arrow-right-CKu4o25T.js",
+    "dist/assets/circle-check-BcS_p6_f.js",
+    "dist/assets/timer-BkK2tafM.js",
+    "dist/siddiq.png",
+    "public/siddiq.png",
+    "dist/favicon.svg",
+    "public/favicon.svg",
+    "issues/future mvp-plan.md",
+    "issues/GENIUS_IDIOT_IMPROVEMENT_PLAN.md",
     "UI SPECS.md",
     "TESTING.md",
     "API SPECS.md",

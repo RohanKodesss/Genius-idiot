@@ -18,6 +18,7 @@ import {
 import { useApp } from '../context/AppContext';
 import ThemeToggle from '../components/ThemeToggle';
 import BrandLogo from '../components/BrandLogo';
+import ProfileCard from '../components/ProfileCard';
 import Card3D from '../components/motion/Card3D';
 import ScrollReveal from '../components/motion/ScrollReveal';
 import SpotlightCard from '../components/motion/SpotlightCard';
@@ -691,8 +692,17 @@ export default function Landing() {
             transition={{ duration: 0.75, ease: [0.16, 1, 0.3, 1] }}
           >
             <div className="developer-orbit" aria-hidden="true" />
-            <img src="/siddiq.png" alt="Siddiq, developer of Genius Idiot" loading="lazy" />
-            <span className="developer-coordinate" aria-hidden="true">IN · BUILDING WITH INTENT</span>
+            <ProfileCard
+              avatarUrl="/siddiq-cutout.png"
+              name="Siddiq"
+              title="Software Engineer"
+              handle="sidhdev"
+              status="Online"
+              contactText="Email"
+              theme="light"
+              backdropColor="#f4f1ea"
+              onContactClick={() => { window.location.href = 'mailto:siddiq080806@gmail.com'; }}
+            />
           </motion.div>
           <motion.div
             className="developer-copy"
