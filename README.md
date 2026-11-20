@@ -147,11 +147,16 @@ VITE_DEMO_MODE=false
 - Use the **publishable / anon** key. **Never** put the `service_role` key in a frontend env var.
 - If either value is empty, the app silently falls back to demo mode.
 
-### 3.3 Email confirmation (required)
+### 3.3 Email confirmation (optional without SMTP)
 
-The app opens on **Create your account**, and Supabase sends a confirmation link before the account
-can be used. Unconfirmed signups cannot log in — the app shows a "Confirm your email" screen with a
-resend button.
+The hosted project currently has **Confirm email off**, because it has no custom SMTP. Signup
+returns a session immediately, so users can start straight away. If you turn confirmation back on,
+Supabase emails a link before the account can be used and the app shows its "Confirm your email"
+screen with a resend button.
+
+The built-in SMTP can only deliver to addresses on your Supabase project team and is limited to a
+couple of emails per hour. **Password reset needs a custom SMTP** (Brevo, Resend, and Postmark all
+have free tiers) — without one, "Forgot password?" cannot reach real users.
 
 Two project settings must match your app URL, or the links in those emails point at the wrong place:
 
@@ -165,9 +170,8 @@ origin to both fields or confirmation links will fail.
 Password reset emails use the same settings: the link returns the user to
 `<app origin>/reset-password`, so the wildcard redirect entry above covers it.
 
-The built-in SMTP is limited to a couple of signup emails per hour. For testing real accounts,
-either wait, configure a custom SMTP, or turn off **Authentication → Providers → Email → Confirm
-email** temporarily (the app still refuses unconfirmed sessions, but new signups are auto-confirmed).
+To test confirmation emails on the built-in SMTP, use a project-team email address or configure a
+custom SMTP. With Confirm email off, the app also accepts the session straight after signup.
 
 ---
 

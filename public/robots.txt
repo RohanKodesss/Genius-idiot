@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /login
+Disallow: /reset-password
+Disallow: /setup
+Disallow: /goal/
+Disallow: /settings
+
+Sitemap: https://genius-idiot.vercel.app/sitemap.xml

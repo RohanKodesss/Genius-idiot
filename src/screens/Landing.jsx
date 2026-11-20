@@ -1,4 +1,4 @@
-import { lazy, Suspense, useState } from 'react';
+import { lazy, Suspense, useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { AnimatePresence, motion } from 'framer-motion';
 import {
@@ -105,6 +105,14 @@ export default function Landing() {
   const [activeTab, setActiveTab] = useState('gi'); // 'gi' or 'traditional'
   const [activePreset, setActivePreset] = useState('dsa');
   const [expandedFaq, setExpandedFaq] = useState(null);
+  // The WebGL wave is desktop-only: it dominates mobile main-thread time.
+  const [showWave, setShowWave] = useState(false);
+
+  useEffect(() => {
+    setShowWave(
+      window.matchMedia('(min-width: 768px) and (prefers-reduced-motion: no-preference)').matches,
+    );
+  }, []);
 
   const selectedPreset = PRESETS.find((p) => p.id === activePreset) ?? PRESETS[0];
 
@@ -181,9 +189,11 @@ export default function Landing() {
           className="pointer-events-none absolute -inset-x-[50vw] top-0 bottom-0 overflow-hidden"
           style={{ width: '100vw', left: '50%', transform: 'translateX(-50%)' }}
         >
-          <Suspense fallback={null}>
-            <ParticleWave className="w-full h-full opacity-50" />
-          </Suspense>
+          {showWave && (
+            <Suspense fallback={null}>
+              <ParticleWave className="w-full h-full opacity-50" />
+            </Suspense>
+          )}
           <div className="absolute inset-0 bg-gradient-to-b from-ivory/0 via-ivory/0 to-ivory" />
         </div>
         {/* Subtle accent glow */}
@@ -693,7 +703,7 @@ export default function Landing() {
           >
             <div className="developer-orbit" aria-hidden="true" />
             <ProfileCard
-              avatarUrl="/siddiq-cutout.png"
+              avatarUrl="/siddiq-cutout.webp"
               name="Siddiq"
               title="Software Engineer"
               handle="sidhdev"

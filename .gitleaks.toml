@@ -1,0 +1,13 @@
+# Extend the default rules, then ignore values that are public by design.
+[extend]
+useDefault = true
+
+[allowlist]
+description = "Public client keys and vendored skill code"
+paths = ['''\.agents/''']
+regexes = [
+  # Supabase publishable key: safe to ship, RLS enforces access.
+  '''sb_publishable_[A-Za-z0-9_-]+''',
+  # PostHog project key (public write key).
+  '''phc_[A-Za-z0-9]+''',
+]
