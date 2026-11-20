@@ -109,7 +109,7 @@ idempotent, so existing projects can re-run it to pick up new columns, functions
 If you prefer to apply changes piecemeal, the standalone migrations are:
 
 1. `supabase/migrations/20261117_add_goal_why.sql` adds the goal “Why” and task note fields.
-2. `supabase/migrations/20261117_public_roadmap.sql` adds public roadmap sharing. Run this before using **Share roadmap**; it installs the visibility columns, restricted public read function, and RLS policies.
+2. `supabase/migrations/20261120120000_public_roadmap.sql` adds public roadmap sharing. Run this before using **Share roadmap**; it installs the visibility columns, restricted public read function, and RLS policies.
 
 After running a migration, reload the app so PostgREST can use the refreshed schema cache.
 
