@@ -87,4 +87,14 @@ describe('demo repository persistence for new features', () => {
       ['2026-11-17', null],
     ]);
   });
+
+  it('persists multi-day progress on a task', async () => {
+    const { data } = await local.fetchAll();
+    const task = data.tasks[0];
+    expect((await local.updateTask(task.id, { total_est_minutes: 900 })).ok).toBe(true);
+    expect((await local.updateTask(task.id, { minutes_completed: 120 })).ok).toBe(true);
+    const saved = (await local.fetchAll()).data.tasks.find((row) => row.id === task.id);
+    expect(saved.total_est_minutes).toBe(900);
+    expect(saved.minutes_completed).toBe(120);
+  });
 });

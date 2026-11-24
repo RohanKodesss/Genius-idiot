@@ -8,6 +8,7 @@ import {
   LayoutDashboard,
   LogOut,
   Menu,
+  MessageSquare,
   PanelLeftClose,
   PanelLeftOpen,
   Plus,
@@ -20,6 +21,7 @@ import BrandLogo from './BrandLogo';
 import ThemeToggle from './ThemeToggle';
 import useFocusTrap from './useFocusTrap';
 import HibernationControl from './HibernationControl';
+import FeedbackIssues from './FeedbackIssues';
 
 function MenuItem({ to, icon: Icon, label, onNavigate, end = false }) {
   return (
@@ -66,7 +68,7 @@ function GoalNavItem({ goal, streak, onNavigate }) {
   );
 }
 
-function SidePanel({ onNavigate, compact = false }) {
+function SidePanel({ onNavigate, compact = false, onFeedback }) {
   const { goals, streaksByGoal, overallStreak, logOut, authUser } = useApp();
 
   return (
@@ -155,6 +157,17 @@ function SidePanel({ onNavigate, compact = false }) {
           </button>
         </div>
       )}
+
+      <div className="border-t border-sand pt-2">
+        <button
+          type="button"
+          onClick={onFeedback}
+          className="flex min-h-[44px] w-full items-center gap-2 rounded-xl px-2 py-2 text-xs text-mist transition hover:text-ink"
+        >
+          <MessageSquare className="w-3.5 h-3.5 shrink-0" aria-hidden="true" />
+          Feedback &amp; Issues
+        </button>
+      </div>
     </div>
   );
 }
@@ -162,6 +175,7 @@ function SidePanel({ onNavigate, compact = false }) {
 export default function AppShell() {
   const { authUser, demoMode, logOut, today } = useApp();
   const [drawerOpen, setDrawerOpen] = useState(false);
+  const [feedbackOpen, setFeedbackOpen] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(() => {
     try {
       return localStorage.getItem('gi:desktop-sidebar-open') !== 'false';
@@ -173,6 +187,11 @@ export default function AppShell() {
   const navigate = useNavigate();
   const { pathname } = useLocation();
   const close = () => setDrawerOpen(false);
+  // Drop the drawer first so only one focus trap is active behind the modal.
+  const openFeedback = () => {
+    setDrawerOpen(false);
+    setFeedbackOpen(true);
+  };
   const initial = authUser?.email?.[0]?.toUpperCase() ?? 'G';
   const toggleSidebar = () => {
     setSidebarOpen((current) => {
@@ -208,7 +227,7 @@ export default function AppShell() {
       <div className="flex min-h-screen w-full flex-col bg-parchment sm:flex-row">
         {sidebarOpen && (
           <aside className="hidden w-64 shrink-0 flex-col border-r border-sand bg-parchment p-5 lg:flex xl:w-[272px]">
-            <SidePanel />
+            <SidePanel onFeedback={openFeedback} />
           </aside>
         )}
 
@@ -327,11 +346,13 @@ export default function AppShell() {
               </button>
             </div>
             <div className="min-h-0 flex-1 overflow-y-auto">
-              <SidePanel onNavigate={close} compact />
+              <SidePanel onNavigate={close} compact onFeedback={openFeedback} />
             </div>
           </div>
         </div>
       )}
+
+      <FeedbackIssues open={feedbackOpen} onClose={() => setFeedbackOpen(false)} />
     </div>
   );
 }

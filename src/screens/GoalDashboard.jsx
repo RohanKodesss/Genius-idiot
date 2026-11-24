@@ -3,7 +3,8 @@ import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { format } from 'date-fns';
 import { ArrowLeft, ArrowUpRight, CalendarDays, ExternalLink, EyeOff, Flame, Moon, Share2, Target } from 'lucide-react';
 import { useApp } from '../context/AppContext';
-import { fromDay } from '../lib/dates';
+import { fromDay, formatDay } from '../lib/dates';
+import { durationInDays } from '../lib/multiday';
 import { Badge, Button, Card, EmptyState } from '../components/ui';
 import ShiftNotice from '../components/ShiftNotice';
 import SmartCalendar from '../components/SmartCalendar';
@@ -209,6 +210,14 @@ export default function GoalDashboard() {
             Today's task
           </h2>
           <p className="mt-2 break-words font-display text-2xl text-ink">{todayTask.title}</p>
+          {todayTask.total_est_minutes != null && (
+            <p className="mt-1 text-xs text-mist tabular-nums">
+              {todayTask.minutes_completed ?? 0} / {todayTask.total_est_minutes} min ·{' '}
+              {durationInDays(todayTask, goal.daily_minutes)} day
+              {durationInDays(todayTask, goal.daily_minutes) === 1 ? '' : 's'} left at{' '}
+              {goal.daily_minutes} min/day
+            </p>
+          )}
           {todayTask.link && (
             <a
               href={todayTask.link}
@@ -228,7 +237,8 @@ export default function GoalDashboard() {
               onFinish={(minutes) => completeTask(todayTask.id, minutes)}
             />
           </div>
-          {projection[1] && (
+          {projection[1] &&
+            (projection[1].total_est_minutes == null || projection[1].planned_date <= today) && (
             <Button
               className="mt-3"
               variant="secondary"
@@ -240,6 +250,36 @@ export default function GoalDashboard() {
               <ArrowUpRight className="h-4 w-4" aria-hidden="true" />
               Pull next task into today
             </Button>
+          )}
+        </Card>
+      )}
+
+      {!todayTask && !restToday && projection[0]?.projected > today && (
+        <Card>
+          <h2 className="text-xs font-semibold uppercase tracking-wider text-slate">
+            Upcoming task
+          </h2>
+          <p className="mt-2 break-words font-display text-2xl text-ink">{projection[0].title}</p>
+          <p className="mt-1 text-sm text-slate">
+            Starts {formatDay(projection[0].projected)}
+            {projection[0].total_est_minutes != null && (
+              <span className="tabular-nums">
+                {' '}· {durationInDays(projection[0], goal.daily_minutes)} day
+                {durationInDays(projection[0], goal.daily_minutes) === 1 ? '' : 's'} at{' '}
+                {goal.daily_minutes} min/day
+              </span>
+            )}
+          </p>
+          {projection[0].link && (
+            <a
+              href={projection[0].link}
+              target="_blank"
+              rel="noreferrer"
+              className="mt-2 inline-flex max-w-full items-center gap-1 text-sm text-slate hover:text-champagne"
+            >
+              <span className="min-w-0 break-words">Open resource</span>
+              <ExternalLink className="h-3.5 w-3.5 shrink-0" aria-hidden="true" />
+            </a>
           )}
         </Card>
       )}

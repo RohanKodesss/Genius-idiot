@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from 'react';
 import { createPortal } from 'react-dom';
 import { ExternalLink, Pause, Play, RotateCcw } from 'lucide-react';
 import { elapsedMs, formatClock, minutesFrom } from '../lib/timer';
+import { sessionMinutes } from '../lib/multiday';
 
 const storageKey = (goalId) => `gi:timer:${goalId}`;
 
@@ -33,7 +34,8 @@ function drop(goalId) {
 }
 
 export default function GoalTimer({ goal, task, onFinish, autoStart = false }) {
-  const targetMs = goal.daily_minutes * 60_000;
+  const sessionMins = sessionMinutes(task, goal.daily_minutes);
+  const targetMs = sessionMins * 60_000;
   const [state, setState] = useState(() => load(goal.id, task.id));
   const [now, setNow] = useState(() => Date.now());
   const finishedRef = useRef(false);
@@ -80,10 +82,11 @@ export default function GoalTimer({ goal, task, onFinish, autoStart = false }) {
     finishedRef.current = true;
     drop(goal.id);
     setState(null);
-    onFinish(goal.daily_minutes);
-  }, [elapsed, targetMs, state, goal.id, goal.daily_minutes, onFinish]);
+    onFinish(sessionMins);
+  }, [elapsed, targetMs, state, goal.id, sessionMins, onFinish]);
 
   const begin = (carryMs = 0) => {
+    finishedRef.current = false;
     const next = {
       taskId: task.id,
       elapsedMs: carryMs,
@@ -121,7 +124,7 @@ export default function GoalTimer({ goal, task, onFinish, autoStart = false }) {
         className="inline-flex items-center gap-2 rounded-xl bg-champagne px-4 py-3 sm:py-2.5 font-medium text-parchment hover:bg-champagne-light active:scale-[0.98] transition"
       >
         <Play className="w-4 h-4" aria-hidden="true" />
-        Start · {goal.daily_minutes} min
+        Start · {sessionMins} min
       </button>
     );
   }
@@ -166,7 +169,12 @@ export default function GoalTimer({ goal, task, onFinish, autoStart = false }) {
               <div className="h-full rounded-full bg-champagne transition-all" style={{ width: `${pct * 100}%` }} />
             </div>
             <p className="mt-3 text-sm tabular-nums text-linen/55">
-              {Math.floor(elapsed / 60_000)} of {goal.daily_minutes} minutes
+              {Math.floor(elapsed / 60_000)} of {sessionMins} minutes
+              {task.total_est_minutes != null && (
+                <span className="ml-2 text-linen/40">
+                  · task {Math.min(task.total_est_minutes, (task.minutes_completed ?? 0) + Math.floor(elapsed / 60_000))} / {task.total_est_minutes} min
+                </span>
+              )}
             </p>
           </div>
 
@@ -217,7 +225,7 @@ export default function GoalTimer({ goal, task, onFinish, autoStart = false }) {
           {formatClock(remaining)}
         </span>
         <span className="text-xs text-mist tabular-nums">
-          {Math.floor(elapsed / 60_000)} / {goal.daily_minutes} min
+          {Math.floor(elapsed / 60_000)} / {sessionMins} min
         </span>
       </div>
 

@@ -1,7 +1,7 @@
 // P0 unit tests for the product's engine (TESTING §2.2).
 // `today` is a local 'YYYY-MM-DD' string, per the pre-build decision.
 import { describe, expect, it } from 'vitest';
-import { computeProjection, computeShiftHistory, maxShift } from '../lib/projection';
+import { computeProjection, computeShiftHistory, maxShift, nextStartDay } from '../lib/projection';
 
 const today = '2026-11-13';
 
@@ -123,5 +123,67 @@ describe('computeShiftHistory', () => {
     const history = computeShiftHistory(tasks, today, restDays, 1);
     expect(history[0].shift).toBe(computeProjection(tasks, today, restDays)[0].shift);
     expect(history[0].shift).toBe(2);
+  });
+});
+
+describe('multi-day tasks', () => {
+  const longTask = {
+    order: 1,
+    completed_at: null,
+    planned_date: today,
+    total_est_minutes: 900,
+    minutes_completed: 0,
+  };
+  const nextTask = { order: 2, completed_at: null, planned_date: '2026-11-28' };
+
+  it('P0: a long task holds its remaining slots and the next task starts after it', () => {
+    const result = computeProjection([longTask, nextTask], today, [], 60);
+    expect(result[0]).toMatchObject({ projected: today, duration_in_days: 15 });
+    expect(result[1].projected).toBe('2026-11-28');
+  });
+
+  it('P0: completed minutes shorten the remaining duration', () => {
+    const result = computeProjection(
+      [{ ...longTask, minutes_completed: 300 }, nextTask],
+      today,
+      [],
+      60,
+    );
+    expect(result[0].duration_in_days).toBe(10);
+    expect(result[1].projected).toBe('2026-11-23');
+  });
+
+  it('P0: a missed day shifts the long task and the rest of the queue by one day', () => {
+    const tomorrow = '2026-11-14';
+    const result = computeProjection([longTask, nextTask], tomorrow, [], 60);
+    expect(result[0].shift).toBe(1);
+    expect(result[1].shift).toBe(1);
+  });
+
+  it('P1: rest days pause a multi-day task instead of consuming a slot', () => {
+    const restDays = [{ date: '2026-11-14' }];
+    const result = computeProjection([longTask, nextTask], today, restDays, 60);
+    expect(result[0].duration_in_days).toBe(15);
+    expect(result[1].projected).toBe('2026-11-29');
+  });
+
+  it('P1: nextStartDay seeds a new task after the whole existing queue', () => {
+    expect(nextStartDay([longTask], today, [], 60)).toBe('2026-11-28');
+    expect(nextStartDay([longTask], today, [{ date: '2026-11-14' }], 60)).toBe('2026-11-29');
+    expect(nextStartDay([longTask], today, [{ date: '2026-11-28' }], 60)).toBe('2026-11-29');
+  });
+
+  it('P0: a long-form task waits for a future start date', () => {
+    const future = { ...longTask, planned_date: '2026-12-05' };
+    const result = computeProjection(
+      [future, { ...nextTask, planned_date: '2026-12-20' }],
+      today,
+      [],
+      60,
+    );
+    expect(result[0].projected).toBe('2026-12-05');
+    expect(result[0].shift).toBe(0);
+    expect(result[1].projected).toBe('2026-12-20');
+    expect(nextStartDay([future], today, [], 60)).toBe('2026-12-20');
   });
 });

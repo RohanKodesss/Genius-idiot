@@ -7,6 +7,7 @@ import { Button, Card, Input } from '../components/ui';
 import MarkdownImporter from '../components/MarkdownImporter';
 import TaskCardBuilder from '../components/TaskCardBuilder';
 import QuickImport from '../components/QuickImport';
+import LongFormTaskForm from '../components/LongFormTaskForm';
 import ThemeToggle from '../components/ThemeToggle';
 import { skipSetup } from '../lib/setupGate';
 import TemplateGallery from '../components/TemplateGallery';
@@ -20,6 +21,7 @@ export default function Setup() {
   const [why, setWhy] = useState('');
   const [selected, setSelected] = useState(goals[0]?.id ?? null);
   const [method, setMethod] = useState('cards');
+  const [taskStyle, setTaskStyle] = useState('queue');
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
@@ -134,10 +136,10 @@ export default function Setup() {
             />
 
             <Card className="order-1 min-w-0 lg:order-2">
-              <h2 className="font-display text-xl text-ink">Import a roadmap</h2>
+              <h2 className="font-display text-xl text-ink">Add tasks to this goal</h2>
               <p className="mt-1 text-sm text-slate">
-                Pick a goal, then build cards, paste Markdown, or paste any list. Every method uses a
-                start date and one task per day.
+                Pick a goal, then choose a style: one task per day, or one long-form task that
+                spans a date range.
               </p>
 
               <div className="mt-4 flex flex-wrap gap-2">
@@ -169,55 +171,96 @@ export default function Setup() {
               {selectedGoal && (
                 <div className="mt-6">
                   <div
-                    role="tablist"
-                    aria-label="Roadmap entry method"
-                    className="mb-5 grid w-full grid-cols-1 gap-1 rounded-xl border border-sand bg-ivory p-1 sm:inline-flex sm:w-auto"
+                    role="radiogroup"
+                    aria-label="Task style"
+                    className="grid gap-2 sm:grid-cols-2"
                   >
                     {[
-                      { id: 'cards', label: 'Card builder' },
-                      { id: 'markdown', label: 'Markdown' },
-                      { id: 'paste', label: 'Quick paste' },
-                    ].map((tab) => (
+                      {
+                        id: 'queue',
+                        label: 'One task per day',
+                        hint: 'The classic queue: a task lands each day.',
+                      },
+                      {
+                        id: 'long',
+                        label: 'Long-form task',
+                        hint: 'One task that runs across a date range.',
+                      },
+                    ].map((style) => (
                       <button
-                        key={tab.id}
-                        role="tab"
+                        key={style.id}
+                        role="radio"
                         type="button"
-                        aria-selected={method === tab.id}
-                        onClick={() => setMethod(tab.id)}
-                        className={`min-h-[44px] whitespace-nowrap rounded-lg px-3 py-2 text-sm transition ${
-                          method === tab.id
-                            ? 'bg-sand text-ink'
-                            : 'text-slate hover:text-ink'
+                        aria-checked={taskStyle === style.id}
+                        onClick={() => setTaskStyle(style.id)}
+                        className={`rounded-xl border p-3 text-left transition ${
+                          taskStyle === style.id
+                            ? 'border-champagne bg-champagne/10'
+                            : 'border-sand bg-ivory hover:border-ink'
                         }`}
                       >
-                        {tab.label}
+                        <span className="block text-sm font-medium text-ink">{style.label}</span>
+                        <span className="mt-0.5 block text-xs text-slate">{style.hint}</span>
                       </button>
                     ))}
                   </div>
 
-                  {method === 'cards' && (
-                    <TaskCardBuilder
-                      key={`cards-${selectedGoal.id}`}
-                      startDay={today}
-                      importLabel={`Add to ${selectedGoal.name}`}
-                      onImport={handleImport}
-                    />
-                  )}
-                  {method === 'markdown' && (
-                    <MarkdownImporter
-                      key={`md-${selectedGoal.id}`}
-                      startDay={today}
-                      importLabel={`Import into ${selectedGoal.name}`}
-                      onImport={handleImport}
-                    />
-                  )}
-                  {method === 'paste' && (
-                    <QuickImport
-                      key={`paste-${selectedGoal.id}`}
-                      startDay={today}
-                      importLabel={`Add to ${selectedGoal.name}`}
-                      onImport={handleImport}
-                    />
+                  {taskStyle === 'queue' ? (
+                    <div className="mt-5">
+                      <div
+                        role="tablist"
+                        aria-label="Roadmap entry method"
+                        className="mb-5 grid w-full grid-cols-1 gap-1 rounded-xl border border-sand bg-ivory p-1 sm:inline-flex sm:w-auto"
+                      >
+                        {[
+                          { id: 'cards', label: 'Card builder' },
+                          { id: 'markdown', label: 'Markdown' },
+                          { id: 'paste', label: 'Quick paste' },
+                        ].map((tab) => (
+                          <button
+                            key={tab.id}
+                            role="tab"
+                            type="button"
+                            aria-selected={method === tab.id}
+                            onClick={() => setMethod(tab.id)}
+                            className={`min-h-[44px] whitespace-nowrap rounded-lg px-3 py-2 text-sm transition ${
+                              method === tab.id
+                                ? 'bg-sand text-ink'
+                                : 'text-slate hover:text-ink'
+                            }`}
+                          >
+                            {tab.label}
+                          </button>
+                        ))}
+                      </div>
+
+                      {method === 'cards' && (
+                        <TaskCardBuilder
+                          key={`cards-${selectedGoal.id}`}
+                          startDay={today}
+                          importLabel={`Add to ${selectedGoal.name}`}
+                          onImport={handleImport}
+                        />
+                      )}
+                      {method === 'markdown' && (
+                        <MarkdownImporter
+                          key={`md-${selectedGoal.id}`}
+                          startDay={today}
+                          importLabel={`Import into ${selectedGoal.name}`}
+                          onImport={handleImport}
+                        />
+                      )}
+                      {method === 'paste' && (
+                        <QuickImport
+                          key={`paste-${selectedGoal.id}`}
+                          startDay={today}
+                          importLabel={`Add to ${selectedGoal.name}`}
+                          onImport={handleImport}
+                        />
+                      )}
+                    </div>
+                  ) : (
+                    <LongFormTaskForm key={`long-${selectedGoal.id}`} goal={selectedGoal} />
                   )}
                 </div>
               )}

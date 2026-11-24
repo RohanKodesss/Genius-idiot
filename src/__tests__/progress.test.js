@@ -24,6 +24,26 @@ describe('computeProgress', () => {
     const tasks = [{ completed_at: null }, { completed_at: null }];
     expect(computeProgress(tasks, today, ['2026-11-14']).eta).toBe('2026-11-16');
   });
+
+  it('gives a multi-day task its remaining slots in the finish date', () => {
+    const tasks = [
+      { completed_at: null, total_est_minutes: 900, minutes_completed: 0 },
+      { completed_at: null },
+    ];
+    expect(computeProgress(tasks, today, [], 60).eta).toBe('2026-11-29');
+  });
+
+  it('waits for a long-form task start date before counting its slots', () => {
+    const tasks = [
+      {
+        completed_at: null,
+        total_est_minutes: 900,
+        minutes_completed: 0,
+        planned_date: '2026-12-05',
+      },
+    ];
+    expect(computeProgress(tasks, today, [], 60).eta).toBe('2026-12-20');
+  });
 });
 
 describe('computeTodayTotals', () => {

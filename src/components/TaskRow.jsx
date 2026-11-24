@@ -41,6 +41,9 @@ export default function TaskRow({
         <p className="break-words text-xs text-mist mt-0.5">
           Planned {formatDay(task.planned_date)}
           {task.est_minutes ? ` · ${task.est_minutes} min` : ''}
+          {task.total_est_minutes != null
+            ? ` · ${task.minutes_completed ?? 0} / ${task.total_est_minutes} min (multi-day)`
+            : ''}
           {done && task.minutes_spent != null ? ` · logged ${task.minutes_spent} min` : ''}
         </p>
         {task.link && (

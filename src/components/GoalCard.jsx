@@ -3,6 +3,7 @@ import { motion } from 'framer-motion';
 import { ExternalLink, Moon, RotateCcw } from 'lucide-react';
 import { useApp } from '../context/AppContext';
 import { formatDay } from '../lib/dates';
+import { durationInDays } from '../lib/multiday';
 import GoalTimer from './GoalTimer';
 import MinutesInput from './MinutesInput';
 import StreakBadge from './StreakBadge';
@@ -44,11 +45,32 @@ export default function GoalCard({ goal, projection, streak, progress, restToday
                 : 'Nothing queued after today.'}
             </p>
           </>
+        ) : task && task.projected > today ? (
+          <>
+            <p className="font-sans text-lg font-semibold text-ink leading-snug">
+              Starts {formatDay(task.projected)}
+            </p>
+            <p className="mt-1 break-words text-sm text-slate">{task.title}</p>
+            {task.total_est_minutes != null && (
+              <p className="mt-1 text-xs text-mist tabular-nums">
+                {task.total_est_minutes} min ·{' '}
+                {durationInDays(task, goal.daily_minutes)} day
+                {durationInDays(task, goal.daily_minutes) === 1 ? '' : 's'} planned
+              </p>
+            )}
+          </>
         ) : todayTask ? (
           <>
             <p className="break-words font-sans text-lg font-semibold text-ink leading-snug">
               {todayTask.title}
             </p>
+            {todayTask.total_est_minutes != null && (
+              <p className="mt-1 text-xs text-mist tabular-nums">
+                {todayTask.minutes_completed ?? 0} / {todayTask.total_est_minutes} min ·{' '}
+                {durationInDays(todayTask, goal.daily_minutes)} day
+                {durationInDays(todayTask, goal.daily_minutes) === 1 ? '' : 's'} left
+              </p>
+            )}
             {todayTask.link && (
               <a
                 href={todayTask.link}

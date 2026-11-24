@@ -107,6 +107,7 @@ export default function Today() {
       return queue
         .slice(firstPendingIndex)
         .filter((task) => !task.completed_at)
+        .filter((task) => task.total_est_minutes == null || task.planned_date <= today)
         .map((task) => ({ goal, task, targetOrder: firstPendingIndex + 1 }));
     });
 

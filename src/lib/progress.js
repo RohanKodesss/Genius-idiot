@@ -1,21 +1,28 @@
 // Queue progress and today's minutes. All derived, nothing stored.
 import { addDay, dayOf } from './dates';
+import { durationInDays } from './multiday';
 
 const restSet = (restDays) =>
   new Set(restDays.map((restDay) => (typeof restDay === 'string' ? restDay : restDay.date)));
 
-export function computeProgress(tasks, today, restDays = []) {
+export function computeProgress(tasks, today, restDays = [], dailyMinutes = null) {
   const total = tasks.length;
   const done = tasks.filter((task) => task.completed_at).length;
-  const pending = total - done;
 
-  // Finish date = today plus one working day per pending task (rest days skipped).
+  // Finish date = today plus the slots every pending task still needs, with
+  // rest days skipped and multi-day tasks holding more than one slot.
   const rest = restSet(restDays);
   let eta = today;
-  for (let i = 0; i < pending; i += 1) {
-    eta = addDay(eta, 1);
-    while (rest.has(eta)) eta = addDay(eta, 1);
-  }
+  tasks
+    .filter((task) => !task.completed_at)
+    .forEach((task) => {
+      if (task.total_est_minutes != null && task.planned_date > eta) eta = task.planned_date;
+      const duration = durationInDays(task, dailyMinutes);
+      for (let slot = 0; slot < duration; slot += 1) {
+        eta = addDay(eta, 1);
+        while (rest.has(eta)) eta = addDay(eta, 1);
+      }
+    });
 
   return {
     done,
