@@ -15,6 +15,8 @@ create table if not exists public.goals (
   name          text        not null,
   daily_minutes integer     not null default 60,
   why           text        not null default '',
+  is_public     boolean     not null default false,
+  public_id     uuid        not null default gen_random_uuid(),
   created_at    timestamptz not null default now(),
   updated_at    timestamptz not null default now(),
 
@@ -24,6 +26,12 @@ create table if not exists public.goals (
 );
 
 alter table public.goals add column if not exists why text not null default '';
+alter table public.goals add column if not exists is_public boolean not null default false;
+alter table public.goals add column if not exists public_id uuid default gen_random_uuid();
+update public.goals set public_id = gen_random_uuid() where public_id is null;
+alter table public.goals alter column public_id set default gen_random_uuid();
+alter table public.goals alter column public_id set not null;
+create unique index if not exists goals_public_id_uidx on public.goals (public_id);
 
 -- Tasks: the ordered queue per goal
 create table if not exists public.tasks (
@@ -139,6 +147,27 @@ drop policy if exists goals_delete_own on public.goals;
 create policy goals_delete_own on public.goals
   for delete using (auth.uid() = user_id);
 
+-- Public roadmap rows are readable only when explicitly shared. Anonymous
+-- clients use get_public_roadmap(), which returns a safe column projection.
+drop policy if exists goals_select_public on public.goals;
+create policy goals_select_public on public.goals
+  for select to anon using (is_public = true);
+
+create or replace function public.goal_is_public(p_goal_id uuid)
+returns boolean
+language sql
+stable
+security definer
+set search_path = pg_catalog
+as $$
+  select exists (
+    select 1 from public.goals g
+    where g.id = p_goal_id and g.is_public = true
+  );
+$$;
+revoke all on function public.goal_is_public(uuid) from public;
+grant execute on function public.goal_is_public(uuid) to anon;
+
 -- ── tasks: ownership inherited through goals ──
 drop policy if exists tasks_all_own on public.tasks;
 create policy tasks_all_own on public.tasks
@@ -153,6 +182,11 @@ create policy tasks_all_own on public.tasks
              where g.id = tasks.goal_id
                and g.user_id = auth.uid())
   );
+
+drop policy if exists tasks_select_public on public.tasks;
+create policy tasks_select_public on public.tasks
+  for select to anon
+  using (public.goal_is_public(goal_id));
 
 -- ── rest_days: same pattern ──
 drop policy if exists rest_days_all_own on public.rest_days;
@@ -234,6 +268,44 @@ begin
    where id = p_task_id;
 end;
 $$;
+
+-- The public API returns only name/public_id and task title/order/completion.
+-- It deliberately omits internal IDs, ownership, links, notes, and user data.
+create or replace function public.get_public_roadmap(p_public_id uuid)
+returns jsonb
+language sql
+stable
+security definer
+set search_path = pg_catalog
+as $$
+  select pg_catalog.jsonb_build_object(
+    'goal', pg_catalog.jsonb_build_object(
+      'name', g.name,
+      'public_id', g.public_id
+    ),
+    'tasks', coalesce((
+      select pg_catalog.jsonb_agg(
+        pg_catalog.jsonb_build_object(
+          'title', t.title,
+          'order', t."order",
+          'completed_at', t.completed_at
+        ) order by t."order"
+      )
+      from public.tasks t
+      where t.goal_id = g.id
+    ), '[]'::pg_catalog.jsonb)
+  )
+  from public.goals g
+  where g.public_id = p_public_id
+    and g.is_public = true;
+$$;
+
+revoke all on function public.get_public_roadmap(uuid) from public;
+grant execute on function public.get_public_roadmap(uuid) to anon, authenticated;
+
+-- Anonymous clients must not query base tables directly: row policies protect
+-- rows, while the RPC above also enforces the public column allowlist.
+revoke select on public.goals, public.tasks from anon, public;
 
 -- Refresh PostgREST's schema cache after applying migrations such as `notes`.
 notify pgrst, 'reload schema';

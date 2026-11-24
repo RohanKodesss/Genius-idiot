@@ -49,12 +49,15 @@ const authFail = (error, status) => {
 
 const unconfirmed = (user) => !user?.email_confirmed_at;
 
-export async function signUp(email, password) {
+export async function signUp(email, password, captchaToken) {
   if (DEMO_MODE) return local.signUp(email, password);
   const { data, error } = await supabase.auth.signUp({
     email,
     password,
-    options: { emailRedirectTo: window.location.origin },
+    options: {
+      emailRedirectTo: window.location.origin,
+      ...(captchaToken ? { captchaToken } : {}),
+    },
   });
   if (error) return authFail(error, error.status ?? 400);
   // No session means Supabase wants the email confirmed first.
@@ -64,9 +67,13 @@ export async function signUp(email, password) {
   return { ok: true, data: data.user };
 }
 
-export async function logIn(email, password) {
+export async function logIn(email, password, captchaToken) {
   if (DEMO_MODE) return local.logIn(email, password);
-  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  const { data, error } = await supabase.auth.signInWithPassword({
+    email,
+    password,
+    ...(captchaToken ? { options: { captchaToken } } : {}),
+  });
   if (error) return authFail(error, error.status ?? 401);
   // Defence in depth: never keep a session for an unverified address, even if
   // the project ever turns "Confirm email" off.
@@ -84,22 +91,26 @@ export async function logIn(email, password) {
   return { ok: true, data: data.user };
 }
 
-export async function resendConfirmation(email) {
+export async function resendConfirmation(email, captchaToken) {
   if (DEMO_MODE) return local.resendConfirmation();
   const { error } = await supabase.auth.resend({
     type: 'signup',
     email,
-    options: { emailRedirectTo: window.location.origin },
+    options: {
+      emailRedirectTo: window.location.origin,
+      ...(captchaToken ? { captchaToken } : {}),
+    },
   });
   if (error) return authFail(error, error.status ?? 400);
   return { ok: true, data: null };
 }
 
 // Recovery: the email lands on /reset-password with a short-lived session.
-export async function requestPasswordReset(email) {
+export async function requestPasswordReset(email, captchaToken) {
   if (DEMO_MODE) return local.requestPasswordReset();
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
     redirectTo: `${window.location.origin}/reset-password`,
+    ...(captchaToken ? { captchaToken } : {}),
   });
   if (error) return authFail(error, error.status ?? 400);
   return { ok: true, data: null };
@@ -215,12 +226,39 @@ export async function getRestDaysForGoal(goalId) {
 // ── Goals ───────────────────────────────────────────────────────────────────
 export async function createGoal(goal) {
   if (DEMO_MODE) return local.createGoal(goal);
-  return unwrap(await supabase.from('goals').insert(goal).select());
+  // `public_id` and `is_public` are database-managed and only exist after the
+  // public-roadmap migration. Sending them from the client made every goal
+  // insert fail with PGRST204 on projects that had not run it yet. The defaults
+  // fill them in when the columns exist; older schemas simply ignore the feature.
+  const { public_id: _publicId, is_public: _isPublic, ...row } = goal;
+  return unwrap(await supabase.from('goals').insert(row).select());
 }
 
 export async function updateGoal(goalId, patch) {
   if (DEMO_MODE) return local.updateGoal(goalId, patch);
   return unwrap(await supabase.from('goals').update(patch).eq('id', goalId).select());
+}
+
+export async function toggleGoalVisibility(goalId, isPublic) {
+  if (DEMO_MODE) return local.toggleGoalVisibility(goalId, isPublic);
+  return unwrap(
+    await supabase
+      .from('goals')
+      .update({ is_public: isPublic })
+      .eq('id', goalId)
+      .select('id,is_public,public_id'),
+  );
+}
+
+export async function getPublicGoalByPublicId(publicId) {
+  if (!/^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i.test(publicId ?? '')) {
+    return fail(404, 'PGRST116', 'Public roadmap not found.', false);
+  }
+  if (DEMO_MODE) return local.getPublicGoalByPublicId(publicId);
+  const { data, error } = await supabase.rpc('get_public_roadmap', { p_public_id: publicId });
+  if (error) return fromError(error, error.status ?? 500);
+  if (!data?.goal) return fail(404, 'PGRST116', 'Public roadmap not found.', false);
+  return { ok: true, data };
 }
 
 // Deletes are idempotent: an empty array means it is already gone.

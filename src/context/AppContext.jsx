@@ -190,9 +190,16 @@ export function AppProvider({ children }) {
   const shiftHistoryByGoal = useMemo(
     () =>
       Object.fromEntries(
-        data.goals.map((goal) => [goal.id, computeShiftHistory(tasksByGoal[goal.id] ?? [], today)]),
+        data.goals.map((goal) => [
+          goal.id,
+          computeShiftHistory(
+            tasksByGoal[goal.id] ?? [],
+            today,
+            restDaysByGoal[goal.id] ?? [],
+          ),
+        ]),
       ),
-    [data.goals, tasksByGoal, today],
+    [data.goals, tasksByGoal, restDaysByGoal, today],
   );
 
   const maxShiftByGoal = useMemo(
@@ -263,6 +270,8 @@ export function AppProvider({ children }) {
   const addGoal = async ({ name, daily_minutes, why }) => {
     const goal = {
       id: uuid(),
+      public_id: uuid(),
+      is_public: false,
       user_id: authUser?.id,
       name: name.trim(),
       daily_minutes,
@@ -295,6 +304,8 @@ export function AppProvider({ children }) {
       createdAt,
       taskIds: template.tasks.map(() => uuid()),
     });
+    goal.public_id = uuid();
+    goal.is_public = false;
     goal.why = why.trim();
 
     const goalResult = await repo.createGoal(goal);
@@ -334,6 +345,32 @@ export function AppProvider({ children }) {
       notify(explainSaveFailure(res, "Couldn't save this goal. Try again."), 'error');
     }
     return res;
+  };
+
+  const toggleGoalVisibility = async (goalId, isPublic) => {
+    const original = data.goals.find((goal) => goal.id === goalId);
+    if (!original) return { ok: false, status: 404, message: 'Goal not found.' };
+    const publicId = original.public_id ?? uuid();
+    setData((current) => ({
+      ...current,
+      goals: current.goals.map((goal) => goal.id === goalId
+        ? { ...goal, is_public: isPublic, public_id: publicId }
+        : goal),
+    }));
+    const res = await repo.toggleGoalVisibility(goalId, isPublic);
+    if (!res.ok) {
+      setData((current) => ({ ...current, goals: current.goals.map((goal) => goal.id === goalId ? original : goal) }));
+      if (['PGRST202', 'PGRST204', 'PGRST205', '42P01', '42703'].includes(res.code)) {
+        notify('Public roadmap database changes are missing. Run supabase/migrations/20261117_public_roadmap.sql in the Supabase SQL Editor, then retry.', 'error');
+        return res;
+      }
+      notify(explainSaveFailure(res, "Couldn't update sharing. Try again."), 'error');
+      return res;
+    }
+    const saved = Array.isArray(res.data) ? res.data[0] : res.data;
+    const updated = { ...original, ...saved, is_public: isPublic, public_id: saved?.public_id ?? publicId };
+    setData((current) => ({ ...current, goals: current.goals.map((goal) => goal.id === goalId ? updated : goal) }));
+    return { ...res, data: updated };
   };
 
   const deleteGoal = async (goalId) => {
@@ -547,8 +584,8 @@ export function AppProvider({ children }) {
     }
   };
 
-  const logIn = async (email, password) => {
-    const res = await repo.logIn(email, password);
+  const logIn = async (email, password, captchaToken) => {
+    const res = await repo.logIn(email, password, captchaToken);
     if (res.ok) {
       setAuthUser(res.data);
       await reload();
@@ -556,8 +593,8 @@ export function AppProvider({ children }) {
     return res;
   };
 
-  const signUp = async (email, password) => {
-    const res = await repo.signUp(email, password);
+  const signUp = async (email, password, captchaToken) => {
+    const res = await repo.signUp(email, password, captchaToken);
     if (res.ok && res.data && !res.needsConfirmation) {
       setAuthUser(res.data);
       await reload();
@@ -565,9 +602,11 @@ export function AppProvider({ children }) {
     return res;
   };
 
-  const resendConfirmation = async (email) => repo.resendConfirmation(email);
+  const resendConfirmation = async (email, captchaToken) =>
+    repo.resendConfirmation(email, captchaToken);
 
-  const requestPasswordReset = async (email) => repo.requestPasswordReset(email);
+  const requestPasswordReset = async (email, captchaToken) =>
+    repo.requestPasswordReset(email, captchaToken);
 
   // Stable so the reset screen can run it once on mount.
   const completePasswordRecovery = useCallback(async () => {
@@ -630,6 +669,7 @@ export function AppProvider({ children }) {
     addGoal,
     createGoalFromTemplate,
     updateGoal,
+    toggleGoalVisibility,
     deleteGoal,
     importRoadmap,
     addTask,

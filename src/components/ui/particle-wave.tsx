@@ -67,7 +67,7 @@ const ParticleWave = ({ className = '' }: ParticleWaveProps) => {
       return;
     }
 
-    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5));
     renderer.setSize(width, height);
     const theme = getCurrentTheme();
     renderer.setClearColor(getBackgroundColor(theme), 0);

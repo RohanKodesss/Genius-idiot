@@ -45,6 +45,8 @@ function seed() {
   const today = todayOf(new Date());
   const make = (name, dailyMinutes) => ({
     id: uuid(),
+    public_id: uuid(),
+    is_public: false,
     user_id: DEMO_USER.id,
     name,
     daily_minutes: dailyMinutes,
@@ -129,6 +131,30 @@ export async function updateGoal(goalId, patch) {
   const goals = store.goals.map((goal) => (goal.id === goalId ? { ...goal, ...patch } : goal));
   write({ ...store, goals });
   return ok(goals.find((goal) => goal.id === goalId) ?? null);
+}
+
+export async function toggleGoalVisibility(goalId, isPublic) {
+  const store = data();
+  const current = store.goals.find((goal) => goal.id === goalId);
+  if (!current) return fail('Goal not found.');
+  const updated = {
+    ...current,
+    is_public: isPublic,
+    public_id: current.public_id ?? uuid(),
+  };
+  write({ ...store, goals: store.goals.map((goal) => goal.id === goalId ? updated : goal) });
+  return ok({ id: updated.id, is_public: updated.is_public, public_id: updated.public_id });
+}
+
+export async function getPublicGoalByPublicId(publicId) {
+  const store = data();
+  const goal = store.goals.find((row) => row.public_id === publicId && row.is_public === true);
+  if (!goal) return { ok: false, status: 404, code: 'PGRST116', message: 'Public roadmap not found.', retryable: false };
+  const tasks = store.tasks
+    .filter((task) => task.goal_id === goal.id)
+    .sort((a, b) => a.order - b.order)
+    .map(({ title, order, completed_at }) => ({ title, order, completed_at }));
+  return ok({ goal: { name: goal.name, public_id: goal.public_id }, tasks });
 }
 
 export async function deleteGoal(goalId) {

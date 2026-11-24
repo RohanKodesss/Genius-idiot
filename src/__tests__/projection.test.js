@@ -103,11 +103,25 @@ describe('computeShiftHistory', () => {
       { order: 1, completed_at: '2026-11-11T20:00:00', planned_date: '2026-11-11' },
       { order: 2, completed_at: null, planned_date: '2026-11-12' },
     ];
-    const history = computeShiftHistory(tasks, today, 3);
+    const history = computeShiftHistory(tasks, today, [], 3);
     expect(history.map((point) => point.date)).toEqual(['2026-11-11', '2026-11-12', '2026-11-13']);
     // 11-11: task 2 was still upcoming, planned 11-12 → 0
     expect(history[0].shift).toBe(0);
     expect(history[1].shift).toBe(0);
     expect(history[2].shift).toBe(1);
+  });
+
+  it('P1: a missed day raises the final shift point', () => {
+    const tasks = [{ order: 1, completed_at: null, planned_date: '2026-11-12' }];
+    const history = computeShiftHistory(tasks, today, [], 2);
+    expect(history.map((point) => point.shift)).toEqual([0, 1]);
+  });
+
+  it('P1: rest days raise the shift exactly like the projection', () => {
+    const tasks = [{ order: 1, completed_at: null, planned_date: today }];
+    const restDays = [{ date: today }, { date: '2026-11-14' }];
+    const history = computeShiftHistory(tasks, today, restDays, 1);
+    expect(history[0].shift).toBe(computeProjection(tasks, today, restDays)[0].shift);
+    expect(history[0].shift).toBe(2);
   });
 });

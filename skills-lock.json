@@ -1,0 +1,46 @@
+{
+  "version": 2,
+  "skills": {
+    "brag": {
+      "source": "latent-spaces/brag",
+      "commit": "06379432a9243c951dfcc051153be18d2d261044",
+      "sourceType": "github",
+      "skillPath": "skills/brag/SKILL.md",
+      "computedHash": "031ed3d7176bd3808b031595bd2d5b46072375b54a23a78c02e5cdc137191c90"
+    },
+    "design-taste-frontend": {
+      "source": "Leonxlnx/taste-skill",
+      "sourceType": "github",
+      "skillPath": "skills/taste-skill/SKILL.md",
+      "computedHash": "b10eab0a9684cd09cf34c31ef04a3bf530a5f4404422f9c520d42372d670c7fc"
+    },
+    "hyperframes": {
+      "source": "heygen-com/hyperframes",
+      "commit": "f291b125983a180ef9dd8744536c90023e5a1998",
+      "sourceType": "github",
+      "skillPath": "skills/hyperframes/SKILL.md",
+      "computedHash": "aaba3bb08a1370e3c466e15e7ae5d4110ce8a38584a72338db3bbc620a84182a"
+    },
+    "hyperframes-cli": {
+      "source": "heygen-com/hyperframes",
+      "commit": "4a59fef2d0b91de31f97e4a8d9b9071a3e8330c9",
+      "sourceType": "github",
+      "skillPath": "skills/hyperframes-cli/SKILL.md",
+      "computedHash": "0d5cb5b56c945477e6762ce0a1f0165b81d27182ea2b4c8ff49458572634fb3e"
+    },
+    "hyperframes-registry": {
+      "source": "heygen-com/hyperframes",
+      "commit": "4a59fef2d0b91de31f97e4a8d9b9071a3e8330c9",
+      "sourceType": "github",
+      "skillPath": "skills/hyperframes-registry/SKILL.md",
+      "computedHash": "a3c816f09a2ff43bc1502983a68c3fb4e2bb40c6b70dc065d4c11bd91cfa8740"
+    },
+    "media-use": {
+      "source": "heygen-com/hyperframes",
+      "commit": "4a59fef2d0b91de31f97e4a8d9b9071a3e8330c9",
+      "sourceType": "github",
+      "skillPath": "skills/media-use/SKILL.md",
+      "computedHash": "b2c74026bc37ba5e4ddc66864afdfb6727d480f0b027afbb3b1eb68914480320"
+    }
+  }
+}

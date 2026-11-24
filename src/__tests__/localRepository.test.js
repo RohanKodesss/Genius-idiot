@@ -25,6 +25,28 @@ describe('demo repository persistence for new features', () => {
     expect((await local.fetchAll()).data.goals.find((row) => row.id === goal.id).why).toBe(goal.why);
   });
 
+  it('enables a public share and returns only the approved roadmap fields', async () => {
+    const { data } = await local.fetchAll();
+    const goal = data.goals[0];
+    const enabled = await local.toggleGoalVisibility(goal.id, true);
+    expect(enabled.ok).toBe(true);
+    const roadmap = await local.getPublicGoalByPublicId(enabled.data.public_id);
+    expect(roadmap.ok).toBe(true);
+    expect(roadmap.data.goal).toEqual({ name: goal.name, public_id: enabled.data.public_id });
+    expect(Object.keys(roadmap.data.tasks[0]).sort()).toEqual(['completed_at', 'order', 'title']);
+    expect(JSON.stringify(roadmap.data)).not.toContain('user_id');
+    expect(JSON.stringify(roadmap.data)).not.toContain('goal_id');
+    expect(JSON.stringify(roadmap.data)).not.toContain('notes');
+  });
+
+  it('hides a roadmap again when public sharing is disabled', async () => {
+    const { data } = await local.fetchAll();
+    const goal = data.goals[0];
+    const enabled = await local.toggleGoalVisibility(goal.id, true);
+    expect((await local.toggleGoalVisibility(goal.id, false)).ok).toBe(true);
+    expect((await local.getPublicGoalByPublicId(enabled.data.public_id)).status).toBe(404);
+  });
+
   it('saves a task note', async () => {
     const { data } = await local.fetchAll();
     const task = data.tasks[0];

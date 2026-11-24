@@ -13,12 +13,14 @@ const GoalDashboard = lazy(() => import('./screens/GoalDashboard'));
 const HowItWorks = lazy(() => import('./screens/HowItWorks'));
 const ResetPassword = lazy(() => import('./screens/ResetPassword'));
 const Settings = lazy(() => import('./screens/Settings'));
+const PublicRoadmap = lazy(() => import('./screens/PublicRoadmap'));
 
 export default function App() {
   return (
     <Suspense fallback={<BootLoader />}>
       <Routes>
         <Route path="/welcome" element={<Landing />} />
+        <Route path="/p/:publicId" element={<PublicRoadmap />} />
         <Route path="/login" element={<Login />} />
         <Route path="/reset-password" element={<ResetPassword />} />
 

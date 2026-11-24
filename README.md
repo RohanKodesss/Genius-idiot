@@ -5,8 +5,33 @@ A private study/work tracker built on one promise:
 > **A missed day never becomes overdue debt.**
 > The task moves to tomorrow, everything after it slides forward, and the daily load never grows.
 
-Built with React + Vite + Tailwind + Recharts + date-fns + Supabase. No custom backend — Supabase
-is the backend. All business logic is pure functions in `src/lib/`.
+Built with React + Vite + Tailwind + Recharts + date-fns + Supabase, with Framer Motion and Three.js
+on the public landing page. No custom backend — Supabase is the backend. All business logic is pure
+functions in `src/lib/`.
+
+**Also in the app:** a public landing page with an interactive missed-day simulator, roadmap
+templates, goal "why" prompts, per-task notes, full-queue hibernation, shareable public roadmaps,
+light/dark themes and a plain-language in-app guide.
+
+---
+
+## A look at the app
+
+| Landing page | Today's queue |
+|---|---|
+| ![Genius Idiot landing page](docs/screenshots/landing-hero.png) | ![Today dashboard with one task per goal](docs/screenshots/today.png) |
+
+| Goal roadmap and shift graph | Public roadmap |
+|---|---|
+| ![Goal dashboard with roadmap, shift graph and heatmap](docs/screenshots/goal-dashboard.png) | ![Read-only public roadmap page](docs/screenshots/public-roadmap.png) |
+
+| Simulator: fixed dates vs rolling queue | How it works |
+|---|---|
+| ![Interactive missed-day simulator](docs/screenshots/landing-simulator.png) | ![In-app guide](docs/screenshots/how-it-works.png) |
+
+| Setup, templates and importers | Dark mode |
+|---|---|
+| ![Setup screen with templates, card builder, Markdown and quick paste](docs/screenshots/setup.png) | ![Landing page in dark mode](docs/screenshots/landing-hero-dark.png) |
 
 ---
 
@@ -42,6 +67,19 @@ never stored. That is why there is no cron job, no nightly job, no "mark overdue
 
 **The core rule:** today's task is `today + your position in the pending queue`.
 
+### Beyond the core queue
+
+| Feature | What it does |
+|---|---|
+| **Public landing page** (`/welcome`) | Hero, an interactive missed-day simulator, the three-step daily rhythm, template previews, a fixed-vs-rolling comparison and an FAQ — before you sign up. |
+| **Roadmap templates** | Four seeded roadmaps (DSA 90 days, Web Development, DevOps Foundations, Graphic Design) that create a goal, a "why" and a full task queue in one click. |
+| **Goal "why"** | One honest line about why the goal matters, shown on the Today card and goal page when motivation dips. |
+| **Task notes** | A note per task, saved with the task, never rewritten by a shift. |
+| **Hibernation** | Pause every queue for 1–90 days. Each day becomes a rest day, streaks are protected and the finish date moves — the daily load does not. |
+| **Public roadmaps** | Share one goal as a read-only page at `/p/<public_id>` with progress, streak and task list. Owner, email, notes, links and internal IDs are never exposed. |
+| **Light / dark theme** | Follows the OS preference, switchable in the header, remembered per browser. |
+| **In-app guide** | A plain-language "How it works" page shown once to new users, always reachable from the header. |
+
 ---
 
 ## 2. Run it in 2 minutes (demo mode)
@@ -55,7 +93,8 @@ Open http://localhost:5173. With no Supabase env vars the app runs in **demo mod
 `localStorage`, pre-seeded with 3 goals × 10 tasks. Log in with any email/password (it's pre-filled).
 Everything works offline, including completing tasks and shifts.
 
-Demo mode is also your insurance: if the network or auth dies during a demo, set
+The public landing page lives at `/welcome`; the app itself is at `/` once you are signed in. Demo
+mode is also your insurance: if the network or auth dies during a demo, set
 `VITE_DEMO_MODE=true` and the app keeps working from the browser.
 
 ---
@@ -64,21 +103,28 @@ Demo mode is also your insurance: if the network or auth dies during a demo, set
 
 ### 3.1 Create the tables
 
-Open your project → **SQL Editor** → paste all of `supabase/schema.sql` → **Run**.
+Open your project → **SQL Editor** → paste all of `supabase/schema.sql` → **Run**. The schema is
+idempotent, so existing projects can re-run it to pick up new columns, functions and policies.
 
-If your project already has the original tables, run
-`supabase/migrations/20261117_add_goal_why.sql` in the SQL Editor to add the goal “Why” and task note fields. For hibernation cancellation, also run `supabase/migrations/20261117_hibernation_cancellation.sql`.
+If you prefer to apply changes piecemeal, the standalone migrations are:
+
+1. `supabase/migrations/20261117_add_goal_why.sql` adds the goal “Why” and task note fields.
+2. `supabase/migrations/20261120120000_public_roadmap.sql` adds public roadmap sharing. Run this before using **Share roadmap**; it installs the visibility columns, restricted public read function, and RLS policies.
+
+After running a migration, reload the app so PostgREST can use the refreshed schema cache.
 
 That single file creates:
 
 | Object | What it is |
 |---|---|
-| `public.goals` | one row per goal (name, daily minutes) |
-| `public.tasks` | the ordered queue (`"order"`, `planned_date`, `completed_at`) |
+| `public.goals` | one row per goal (name, why, daily minutes, public sharing fields) |
+| `public.tasks` | the ordered queue (`"order"`, `planned_date`, `completed_at`, `notes`) |
 | `public.rest_days` | one row per goal per rest day |
-| indexes | FK lookups, ordered queues, completed-task partial index |
+| `public.get_public_roadmap(uuid)` | safe, read-only public roadmap projection |
+| `public.goal_is_public(uuid)` | helper used by the anonymous read policy |
+| indexes | FK lookups, ordered queues, completed-task partial index, unique `public_id` |
 | triggers | `updated_at` maintained by Postgres |
-| RLS policies | 6 policies; every row is private to its owner |
+| RLS policies | 8 policies; private rows stay owner-only, shared goals are read-only to `anon` |
 | `reorder_task(uuid, integer)` | atomic reorder inside one transaction |
 
 Verify in the SQL editor:
@@ -96,16 +142,22 @@ Copy `.env.example` to `.env`:
 VITE_SUPABASE_URL=https://<project-ref>.supabase.co
 VITE_SUPABASE_ANON_KEY=<publishable / anon key>
 VITE_DEMO_MODE=false
+VITE_TURNSTILE_SITE_KEY=<optional Cloudflare Turnstile site key>
 ```
 
 - Use the **publishable / anon** key. **Never** put the `service_role` key in a frontend env var.
 - If either value is empty, the app silently falls back to demo mode.
 
-### 3.3 Email confirmation (required)
+### 3.3 Email confirmation (optional without SMTP)
 
-The app opens on **Create your account**, and Supabase sends a confirmation link before the account
-can be used. Unconfirmed signups cannot log in — the app shows a "Confirm your email" screen with a
-resend button.
+The hosted project currently has **Confirm email off**, because it has no custom SMTP. Signup
+returns a session immediately, so users can start straight away. If you turn confirmation back on,
+Supabase emails a link before the account can be used and the app shows its "Confirm your email"
+screen with a resend button.
+
+The built-in SMTP can only deliver to addresses on your Supabase project team and is limited to a
+couple of emails per hour. **Password reset needs a custom SMTP** (Brevo, Resend, and Postmark all
+have free tiers) — without one, "Forgot password?" cannot reach real users.
 
 Two project settings must match your app URL, or the links in those emails point at the wrong place:
 
@@ -119,26 +171,44 @@ origin to both fields or confirmation links will fail.
 Password reset emails use the same settings: the link returns the user to
 `<app origin>/reset-password`, so the wildcard redirect entry above covers it.
 
-The built-in SMTP is limited to a couple of signup emails per hour. For testing real accounts,
-either wait, configure a custom SMTP, or turn off **Authentication → Providers → Email → Confirm
-email** temporarily (the app still refuses unconfirmed sessions, but new signups are auto-confirmed).
+To test confirmation emails on the built-in SMTP, use a project-team email address or configure a
+custom SMTP. With Confirm email off, the app also accepts the session straight after signup.
+
+### 3.4 Login CAPTCHA (optional)
+
+Signup, login, password reset, and resend can be protected with Cloudflare Turnstile. The widget
+stays hidden until a site key is configured, so the app keeps working without it.
+
+1. Create a Turnstile widget in the Cloudflare dashboard for `genius-idiot.vercel.app` (and
+   `localhost` for development). Copy the **site key**.
+2. Set `VITE_TURNSTILE_SITE_KEY` in `.env.production` or the Vercel environment variables, then
+   rebuild.
+3. In Supabase → Authentication → Attack Protection, enable bot protection, choose **Turnstile**,
+   and paste the **secret key**.
+
+Both halves are required. A site key without the Supabase secret shows the widget but does not
+protect auth; the Supabase secret without a site key makes login fail because no token is sent.
 
 ---
 
 ## 4. Your first five minutes
 
 1. **Create an account.** The app opens on account creation; a new user cannot get in without
-   signing up and confirming the email. Existing users switch to **Log in**. In demo mode any
-   credentials work.
-2. **Set up a goal.** Name it (`DSA`), set daily minutes (`60`), press **Add goal**.
-3. **Add its roadmap** — three ways, same result:
+   signing up. Existing users switch to **Log in**. In demo mode any credentials work. The public
+   overview is at `/welcome`, with the simulator and FAQ.
+2. **Set up a goal.** Name it (`DSA`), set daily minutes (`60`), write one line about why it matters,
+   press **Add goal**.
+3. **Add its roadmap** — four ways, same result:
+   - **Template** (fastest): pick DSA 90 days, Web Development, DevOps Foundations or Graphic Design.
+     It creates the goal, the "why" prompt and the whole queue for you.
    - **Card builder** (default): set a start date, add cards (title, optional link, optional minutes).
      Card 1 lands on the start date, card 2 the next day, and so on.
    - **Markdown**: paste a strict checklist, preview, import.
    - **Quick paste**: paste a plain list, a spreadsheet column, or drop a `.txt` / `.csv` file.
    - Every method uses the same start date, so you can mix them per goal.
 4. Repeat for each goal. The setup gate keeps you on this screen until every goal has at least one task — or press **Set up later** to use the dashboard first.
-5. Press **Go to today**.
+5. Press **Go to today**. The one-time **How it works** guide appears before the dashboard; read it
+   once, or open it any time from the header.
 
 You now see one card per goal with today's task. Press **Complete** on one — the card updates
 instantly, the next task becomes tomorrow's, and the streak badge appears.
@@ -195,13 +265,18 @@ it. The daily load is still one task.
 - Completing two tasks in one day pulls the whole queue forward by a day.
 - `est_minutes` is display-only in v1: the projection always assumes 1 task = 1 day.
 
-### 5.6 Rest days
+### 5.6 Rest days and hibernation
 
 Marking a rest day for a goal on a date:
 
 - protects that goal's streak for the day (it counts as "kept up"),
 - is shown on Today as "Resting today",
 - does not touch the queue; the projection still uses `today + index`.
+
+**Hibernation** does this for every goal at once. Choose 1–90 days from the sidebar
+(**Take a break → Hibernate queues**); each day in that range becomes a rest day, the queue waits,
+streaks are protected, and the finish date slides by the time away. `buildHibernationRestDays` is
+idempotent, so repeating the action never duplicates rows.
 
 ### 5.7 What is derived (never stored)
 
@@ -226,6 +301,20 @@ and renumbers inside one transaction. Reordering changes **which task comes next
 ---
 
 ## 6. Entering a roadmap
+
+### 6.0 Templates
+
+On Setup, **Start with a roadmap** offers four ready-made queues:
+
+| Template | Tasks | Daily minutes |
+|---|---|---|
+| DSA (90 Days) | 14 | 60 |
+| Web Development | 12 | 60 |
+| DevOps Foundations | 14 | 60 |
+| Graphic Design | 13 | 45 |
+
+Choosing one asks for your "why", then creates the goal, its roadmap and a start date in one step.
+Templates are a starting point, not a lock-in — edit, reorder or delete any task afterwards.
 
 ### 6.1 Card builder (recommended)
 
@@ -281,6 +370,7 @@ Two pointers                  ← plain title
 
 | Situation | Use |
 |---|---|
+| First goal, want a proven plan | Template |
 | Hand-writing 5–20 tasks | Card builder |
 | A file you already have in Markdown | Markdown |
 | Copying from Excel, Notion, a syllabus, or a chat | Quick paste |
@@ -292,6 +382,9 @@ Two pointers                  ← plain title
 | Action | Where | Notes |
 |---|---|---|
 | Start the timer | Today card → **Start · N min** | counts down the goal's `daily_minutes` |
+| Start a focus session | Today header → **Start focus session** | jumps straight to today's task with the timer ready |
+| Can't decide | Today header → **I'm bored — pick a task** | moves a random pending task to the front of its queue |
+| Pull a task forward | Goal page → **Pull next task into today** | moves the next pending task onto today's slot |
 | Pause / resume | Timer → **Pause** / **Resume** | partial progress survives a reload |
 | Reset the timer | Timer → **Reset** | clears the countdown; the task stays pending |
 | Finish early | Timer → **Finish early** (running or paused) | logs the elapsed minutes and completes the task |
@@ -299,7 +392,10 @@ Two pointers                  ← plain title
 | Undo a completion | Today card → **Undo** | clears `completed_at` and logged minutes |
 | Log minutes | Today card → minutes + **Log** | optional, display-only |
 | Write a note | Today card or Goal page → **Add note** | per task; saved with the task, never touched by a shift |
+| Remember the why | Today card / goal page | the goal's "why" line appears near the timer |
 | Mark a rest day | Today card / goal page | toggles; protects the streak |
+| Hibernate every queue | Sidebar → **Hibernate queues** | 1–90 days of rest days for all goals |
+| Share a roadmap | Goal page → **Share roadmap** | toggles a public `/p/<public_id>` link and copies it |
 | See today's total | Today header | minutes done / total, goals done / total |
 | See next 7 days | Goal page | planned vs projected table |
 | Reorder | Goal page → Roadmap | ↑ / ↓ uses the RPC |
@@ -307,8 +403,9 @@ Two pointers                  ← plain title
 | Add one task | Goal page → Roadmap → **Add task** | appended to the end of the queue |
 | Rename / delete a goal | Settings | delete cascades to tasks + rest days |
 | Export | Settings → **Export JSON** | goals + tasks + rest days snapshot |
+| Switch theme | Header → sun / moon | light or dark, remembered per browser |
 | Reset a forgotten password | Login → **Forgot password?** | emails a link that opens `/reset-password` |
-| Read the guide | Sidebar → **How it works** | what the app does, in plain language |
+| Read the guide | Sidebar / header → **How it works** | what the app does, in plain language |
 | Log out | Header / Settings | session cleared |
 
 ---
@@ -334,6 +431,26 @@ two honest choices:
 - **Trim last N** — deletes the last N pending tasks (completed work is never touched),
 - **Accept new finish date** — dismisses the warning for the session.
 
+### 8.1 Public roadmaps
+
+**Share roadmap** on a goal page flips `is_public`, makes sure the goal has a `public_id`, and copies
+`<origin>/p/<public_id>`. The public page shows the goal name, a progress bar, current streak, the
+projected finish date and the ordered task list with completion dates.
+
+What it deliberately does **not** show: your email, user ID, goal ID, task IDs, resource links, notes,
+rest-day rows or minutes logged. Data comes from the `get_public_roadmap(uuid)` security-definer
+function, and anonymous `SELECT` is limited to public goals and their tasks. Turning sharing off
+invalidates the link immediately.
+
+### 8.2 The missed-day reassurance
+
+The first time you open Today on a new day, the app checks whether yesterday's due task was completed
+or rested. If not, a single non-judgmental toast appears:
+
+> You missed yesterday. We slid your queue forward by 1 day. No overdue debt, just a new finish date.
+
+It is shown at most once per day per browser and never blocks the app.
+
 ---
 
 ## 9. Where your data lives
@@ -341,7 +458,8 @@ two honest choices:
 Three tables, all protected by Row Level Security:
 
 ```
-goals (id, user_id → auth.users, name, daily_minutes, created_at, updated_at)
+goals (id, user_id → auth.users, name, why, daily_minutes,
+       is_public, public_id, created_at, updated_at)
   └── tasks (id, goal_id, "order", title, link, est_minutes,
              planned_date, completed_at, minutes_spent, notes,
              created_at, updated_at)
@@ -350,8 +468,13 @@ goals (id, user_id → auth.users, name, daily_minutes, created_at, updated_at)
 
 - `planned_date` is a `date` (calendar day). `completed_at` is a `timestamptz` (a moment).
 - `UNIQUE(goal_id, "order")` is `DEFERRABLE` — required by `reorder_task`.
+- `why` is the short motivation line; `notes` is per task. Both are owned by the user and omitted
+  from the public projection.
+- `is_public` / `public_id` control public sharing. `public_id` is a random UUID with a unique index;
+  it is not derived from the goal ID.
 - RLS: a user can only read/write their own goals; tasks and rest days inherit ownership through
-  their goal. Deleting a goal cascades to its tasks and rest days.
+  their goal. Deleting a goal cascades to its tasks and rest days. Anonymous visitors can read only
+  public goals and their tasks, and only through the restricted projection function.
 - The frontend only ever holds the publishable key. There is no `service_role` key in the bundle and
   no `dangerouslySetInnerHTML` anywhere.
 
@@ -368,18 +491,29 @@ src/
     markdown.js        roadmap parser
     roadmap.js         card builder → task rows
     quickImport.js     forgiving CSV / list / file parser
+    templates/         four seeded roadmap templates + goal factory
+    missedDay.js       did yesterday's due task actually get done? (toast check)
+    hibernation.js     bounded rest-day rows for pausing every queue
     timer.js           timer maths (pure)
     heatmap.js         completed-per-day map
     progress.js        progress + today's totals
+    theme.js           light/dark resolution (pure)
+    setupGate.js       per-user "Set up later" memory
+    guide.js           per-user "How it works" memory
     repository.js      the ONLY file that talks to Supabase
     localRepository.js localStorage implementation (demo mode)
   context/AppContext.jsx   state, derived data, optimistic actions, auth
   components/          presentational + domain components
-  screens/             Login, Setup, Today, GoalDashboard, Settings
-  routes/AuthGuard.jsx session gate + setup gate
+    motion/            Framer Motion primitives (Card3D, ScrollReveal, …)
+    HibernationControl.jsx, TemplateGallery.jsx, HeatMap.jsx, ShiftGraph.jsx, …
+  screens/             Landing, Login, Setup, Today, GoalDashboard,
+                       HowItWorks, PublicRoadmap, Settings, ResetPassword
+  routes/AuthGuard.jsx session gate + guide gate + setup gate
   __tests__/           Vitest tests for lib/
 supabase/schema.sql    tables, indexes, triggers, RLS, reorder_task
+supabase/migrations/   why/notes and public-roadmap migrations
 docs/                  PRD, Architecture, Database, API, UI, TRD, Testing
+docs/screenshots/      product screenshots used in this README
 ```
 
 Data flows down only: screens → context → repository → Supabase. Components never mutate context
@@ -421,6 +555,9 @@ each sees zero of the other's goals (RLS), and rehearse the missed-day shift onc
 | App runs from `localStorage` unexpectedly | env vars empty → demo mode | fill in `.env` or set `VITE_DEMO_MODE=false` |
 | Reorder throws `23505` | unique constraint not deferrable | re-run `supabase/schema.sql` |
 | "Database not set up" toast | tables missing | run the schema |
+| "Public roadmap database changes are missing" | public sharing migration not applied | run `supabase/schema.sql` (or the public roadmap migration), then reload |
+| Public link says "Roadmap not found" | sharing was turned off, or the link is wrong | enable **Share roadmap** again and copy the fresh link |
+| Goal "why" or task notes fail to save | `why` / `notes` columns missing | run `supabase/schema.sql` |
 
 ---
 
@@ -458,7 +595,7 @@ Written at the top of `src/lib/projection.js` and `src/lib/streaks.js`:
 | `docs/UI_SPEC.md` | palette, typography, screens, states, a11y |
 | `docs/TRD.md` | stack, performance, security, testing (partially truncated at source) |
 | `docs/TESTING.md` | unit tests, API tests, RLS test, demo rehearsal |
-| `AGENTS.md` | the build contract and invariants |
+| `docs/screenshots/` | the screenshots used at the top of this README |
 
 ---
 
