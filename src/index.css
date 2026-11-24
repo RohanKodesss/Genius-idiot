@@ -643,6 +643,16 @@
     content: '';
   }
 
+  @media (max-width: 639px) {
+    .lp-proof {
+      gap: 0.3rem 1rem;
+    }
+
+    .lp-proof li + li::before {
+      display: none;
+    }
+  }
+
   @media (min-width: 1024px) {
     .lp-hero__grid {
       grid-template-columns: minmax(0, 1.05fr) minmax(0, 0.95fr);
