@@ -9,10 +9,11 @@ import {
 import * as repo from '../lib/repository';
 import { DEMO_MODE } from '../supabaseClient';
 import { addDay, todayOf } from '../lib/dates';
-import { computeProjection, computeShiftHistory, maxShift } from '../lib/projection';
+import { computeProjection, computeShiftHistory, maxShift, nextStartDay } from '../lib/projection';
 import { computeOverallStreak, computeStreak } from '../lib/streaks';
 import { buildHeatmap } from '../lib/heatmap';
 import { computeProgress, computeTodayTotals } from '../lib/progress';
+import { progressPatch } from '../lib/multiday';
 import { mapTemplateToRows } from '../lib/templateParser';
 import { buildHibernationRestDays } from '../lib/hibernation';
 
@@ -151,7 +152,7 @@ export function AppProvider({ children }) {
       Object.fromEntries(
         data.goals.map((goal) => [
           goal.id,
-          computeProjection(tasksByGoal[goal.id] ?? [], today, restDaysByGoal[goal.id] ?? []),
+          computeProjection(tasksByGoal[goal.id] ?? [], today, restDaysByGoal[goal.id] ?? [], goal.daily_minutes),
         ]),
       ),
     [data.goals, tasksByGoal, restDaysByGoal, today],
@@ -181,7 +182,7 @@ export function AppProvider({ children }) {
       Object.fromEntries(
         data.goals.map((goal) => [
           goal.id,
-          computeProgress(tasksByGoal[goal.id] ?? [], today, restDaysByGoal[goal.id] ?? []),
+          computeProgress(tasksByGoal[goal.id] ?? [], today, restDaysByGoal[goal.id] ?? [], goal.daily_minutes),
         ]),
       ),
     [data.goals, tasksByGoal, restDaysByGoal, today],
@@ -207,7 +208,7 @@ export function AppProvider({ children }) {
       Object.fromEntries(
         data.goals.map((goal) => [
           goal.id,
-          maxShift(tasksByGoal[goal.id] ?? [], today, restDaysByGoal[goal.id] ?? []),
+          maxShift(tasksByGoal[goal.id] ?? [], today, restDaysByGoal[goal.id] ?? [], goal.daily_minutes),
         ]),
       ),
     [data.goals, tasksByGoal, restDaysByGoal, today],
@@ -218,10 +219,14 @@ export function AppProvider({ children }) {
     [data.goals, data.tasks, data.restDays, today],
   );
 
-  const totals = useMemo(
-    () => computeTodayTotals(data.goals, data.tasks, data.restDays, today),
-    [data.goals, data.tasks, data.restDays, today],
-  );
+  const totals = useMemo(() => {
+    // A long-form task that has not reached its start date is not due today.
+    const startedGoals = data.goals.filter((goal) => {
+      const first = projectionByGoal[goal.id]?.[0];
+      return !first || first.projected <= today;
+    });
+    return computeTodayTotals(startedGoals, data.tasks, data.restDays, today);
+  }, [data.goals, data.tasks, data.restDays, today, projectionByGoal]);
 
   // ── Actions (optimistic + rollback) ──────────────────────────────────────
   const restoreTask = (task) =>
@@ -234,15 +239,14 @@ export function AppProvider({ children }) {
     const original = data.tasks.find((task) => task.id === taskId);
     if (!original) return;
     const at = new Date().toISOString();
+    const patch = progressPatch(original, minutes, at);
 
     setData((current) => ({
       ...current,
-      tasks: current.tasks.map((task) =>
-        task.id === taskId ? { ...task, completed_at: at, minutes_spent: minutes ?? task.minutes_spent } : task,
-      ),
+      tasks: current.tasks.map((task) => (task.id === taskId ? { ...task, ...patch } : task)),
     }));
 
-    const res = await repo.completeTask(taskId, at, minutes);
+    const res = await repo.updateTask(taskId, patch);
     if (!res.ok) {
       restoreTask(original);
       notify(explainSaveFailure(res, "Couldn't save that task. Try again."), 'error');
@@ -252,15 +256,18 @@ export function AppProvider({ children }) {
   const undoTask = async (taskId) => {
     const original = data.tasks.find((task) => task.id === taskId);
     if (!original) return;
+    const patch = {
+      completed_at: null,
+      minutes_spent: null,
+      ...(original.total_est_minutes != null ? { minutes_completed: 0 } : {}),
+    };
 
     setData((current) => ({
       ...current,
-      tasks: current.tasks.map((task) =>
-        task.id === taskId ? { ...task, completed_at: null, minutes_spent: null } : task,
-      ),
+      tasks: current.tasks.map((task) => (task.id === taskId ? { ...task, ...patch } : task)),
     }));
 
-    const res = await repo.undoTask(taskId);
+    const res = await repo.updateTask(taskId, patch);
     if (!res.ok) {
       restoreTask(original);
       notify(explainSaveFailure(res, "Couldn't undo that. Try again."), 'error');
@@ -389,8 +396,14 @@ export function AppProvider({ children }) {
 
   const importRoadmap = async (goalId, parsedTasks) => {
     const existing = tasksByGoal[goalId] ?? [];
+    const goal = data.goals.find((row) => row.id === goalId);
     const baseOrder = existing.reduce((max, task) => Math.max(max, task.order), 0);
-    const baseDay = addDay(today, existing.filter((task) => !task.completed_at).length);
+    const baseDay = nextStartDay(
+      existing,
+      today,
+      restDaysByGoal[goalId] ?? [],
+      goal?.daily_minutes,
+    );
     const rows = parsedTasks.map((task, index) => ({
       id: uuid(),
       goal_id: goalId,
@@ -416,10 +429,10 @@ export function AppProvider({ children }) {
     return res;
   };
 
-  const addTask = async (goalId, { title, link, est_minutes }) => {
+  const addTask = async (goalId, { title, link, est_minutes, total_est_minutes, notes, planned_date }) => {
     const existing = tasksByGoal[goalId] ?? [];
+    const goal = data.goals.find((row) => row.id === goalId);
     const order = existing.reduce((max, task) => Math.max(max, task.order), 0) + 1;
-    const pending = existing.filter((task) => !task.completed_at).length;
     const task = {
       id: uuid(),
       goal_id: goalId,
@@ -427,10 +440,17 @@ export function AppProvider({ children }) {
       title: title.trim(),
       link: link || null,
       est_minutes: est_minutes || null,
-      planned_date: addDay(today, pending),
+      total_est_minutes: total_est_minutes || null,
+      minutes_completed: 0,
+      planned_date: planned_date ?? nextStartDay(
+        existing,
+        today,
+        restDaysByGoal[goalId] ?? [],
+        goal?.daily_minutes,
+      ),
       completed_at: null,
       minutes_spent: null,
-      notes: null,
+      notes: notes?.trim() || null,
       created_at: new Date().toISOString(),
       updated_at: new Date().toISOString(),
     };
@@ -505,16 +525,18 @@ export function AppProvider({ children }) {
     }
   };
 
-  const hibernate = async (days) => {
+  const hibernate = async ({ days, goalIds }) => {
     let additions;
+    const selectedGoals = data.goals.filter((goal) => goalIds.includes(goal.id));
     try {
       additions = buildHibernationRestDays({
-        goals: data.goals,
+        goals: selectedGoals,
         restDays: data.restDays ?? [],
         today,
         days,
         createId: uuid,
         createdAt: new Date().toISOString(),
+        hibernationId: uuid(),
       });
     } catch (error) {
       notify(error.message, 'error');
@@ -522,16 +544,32 @@ export function AppProvider({ children }) {
     }
     if (!additions.length) return { ok: true, data: [] };
     setData((current) => ({ ...current, restDays: [...current.restDays, ...additions] }));
-    const results = await Promise.all(additions.map((row) => repo.markRestDay(row.goal_id, row.date)));
+    const results = await Promise.all(additions.map((row) => repo.markRestDay(row.goal_id, row.date, row.hibernation_id)));
     const failed = results.find((result) => !result.ok);
     if (failed) {
       setData((current) => ({ ...current, restDays: current.restDays.filter((row) => !additions.some((added) => added.id === row.id)) }));
-      await Promise.all(additions.map((row) => repo.unmarkRestDay(row.goal_id, row.date)));
+      await repo.cancelHibernation(additions[0].hibernation_id, today);
       notify(explainSaveFailure(failed, "Couldn't pause your queues. Try again."), 'error');
       return failed;
     }
-    notify(`Your queues are resting for ${days} day${days === 1 ? '' : 's'}.`, 'success');
+    notify(`${selectedGoals.map((goal) => goal.name).join(', ')} ${selectedGoals.length === 1 ? 'is' : 'are'} resting for ${days} day${days === 1 ? '' : 's'}.`, 'success');
     return { ok: true, data: additions };
+  };
+
+  const cancelHibernation = async (hibernationId) => {
+    const original = data.restDays;
+    setData((current) => ({
+      ...current,
+      restDays: current.restDays.filter((row) => row.hibernation_id !== hibernationId || row.date < today),
+    }));
+    const res = await repo.cancelHibernation(hibernationId, today);
+    if (!res.ok) {
+      setData((current) => ({ ...current, restDays: original }));
+      notify(explainSaveFailure(res, "Couldn't cancel hibernation. Try again."), 'error');
+      return res;
+    }
+    notify('Hibernation cancelled. Your queue is active again.', 'success');
+    return res;
   };
 
   const unmarkRestDay = async (goalId, date) => {
@@ -661,6 +699,7 @@ export function AppProvider({ children }) {
     markRestDay,
     unmarkRestDay,
     hibernate,
+    cancelHibernation,
     trimLast,
   };
 

@@ -110,6 +110,7 @@ If you prefer to apply changes piecemeal, the standalone migrations are:
 
 1. `supabase/migrations/20261117_add_goal_why.sql` adds the goal “Why” and task note fields.
 2. `supabase/migrations/20261120120000_public_roadmap.sql` adds public roadmap sharing. Run this before using **Share roadmap**; it installs the visibility columns, restricted public read function, and RLS policies.
+3. `supabase/migrations/20261124120000_multi_day_tasks.sql` adds `total_est_minutes` and `minutes_completed` for multi-day tasks.
 
 After running a migration, reload the app so PostgREST can use the refreshed schema cache.
 
@@ -118,7 +119,7 @@ That single file creates:
 | Object | What it is |
 |---|---|
 | `public.goals` | one row per goal (name, why, daily minutes, public sharing fields) |
-| `public.tasks` | the ordered queue (`"order"`, `planned_date`, `completed_at`, `notes`) |
+| `public.tasks` | the ordered queue (`"order"`, `planned_date`, `completed_at`, `notes`, multi-day estimate and progress) |
 | `public.rest_days` | one row per goal per rest day |
 | `public.get_public_roadmap(uuid)` | safe, read-only public roadmap projection |
 | `public.goal_is_public(uuid)` | helper used by the anonymous read policy |

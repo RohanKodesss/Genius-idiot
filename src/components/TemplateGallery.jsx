@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useId, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ArrowRight, BookOpen, Loader2 } from 'lucide-react';
 import { roadmapTemplates } from '../lib/templates';
@@ -13,6 +13,7 @@ export default function TemplateGallery({ className = '', vertical = false }) {
   const [selected, setSelected] = useState(null);
   const [busy, setBusy] = useState(false);
   const [why, setWhy] = useState('');
+  const whyInputId = useId();
 
   const confirmTemplate = async () => {
     if (!selected || busy) return;
@@ -68,7 +69,7 @@ export default function TemplateGallery({ className = '', vertical = false }) {
 
       {selected && (
         <Modal
-          title={`Start “${selected.title}”?`}
+          title={`Preview ${selected.title}`}
           onClose={() => { if (!busy) { setSelected(null); setWhy(''); } }}
           footer={
             <>
@@ -77,19 +78,32 @@ export default function TemplateGallery({ className = '', vertical = false }) {
               </Button>
               <Button disabled={busy || !why.trim()} onClick={confirmTemplate}>
                 {busy ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : <ArrowRight className="h-4 w-4" aria-hidden="true" />}
-                {busy ? 'Adding roadmap…' : 'Create roadmap'}
+                {busy ? 'Adding roadmap…' : 'Add roadmap'}
               </Button>
             </>
           }
         >
           <p className="text-sm leading-relaxed text-slate">
-            This will add 1 goal and {selected.tasks.length} tasks to your dashboard.
+            {selected.description} This roadmap has {selected.tasks.length} daily tasks at {selected.daily_minutes} minutes per day.
           </p>
-          <label className="mt-4 block text-[13px] font-medium text-slate" htmlFor="template-why">Why does this goal matter to you?</label>
-          <textarea id="template-why" required maxLength={180} value={why} onChange={(event) => setWhy(event.target.value)} placeholder="To build a career I care about." className="mt-1.5 w-full rounded-xl border border-sand bg-ivory px-4 py-3 text-sm text-ink focus:border-champagne focus:ring-2 focus:ring-champagne/20" />
-          <p className="mt-3 rounded-xl bg-ivory px-3 py-2.5 text-xs text-mist">
-            Your first task starts today. The rest follow one per day.
-          </p>
+          <div className="mt-4 overflow-hidden rounded-xl border border-sand">
+            <div className="flex items-center justify-between gap-3 border-b border-sand bg-ivory px-3 py-2.5">
+              <h3 className="text-sm font-semibold text-ink">Roadmap preview</h3>
+              <span className="text-xs tabular-nums text-mist">{selected.tasks.length} days</span>
+            </div>
+            <ol className="max-h-64 divide-y divide-sand overflow-y-auto px-3">
+              {selected.tasks.map((task, index) => (
+                <li key={`${selected.id}-${task.title}`} className="grid grid-cols-[3.5rem_minmax(0,1fr)_3rem] items-start gap-2 py-2.5">
+                  <span className="pt-0.5 text-xs tabular-nums text-mist">Day {index + 1}</span>
+                  <span className="break-words text-sm text-ink">{task.title}</span>
+                  <span className="pt-0.5 text-right text-[11px] tabular-nums text-mist">{task.est_minutes ? `${task.est_minutes}m` : '—'}</span>
+                </li>
+              ))}
+            </ol>
+          </div>
+          <label className="mt-4 block text-[13px] font-medium text-slate" htmlFor={whyInputId}>Why does this goal matter to you?</label>
+          <textarea id={whyInputId} required maxLength={180} value={why} onChange={(event) => setWhy(event.target.value)} placeholder="To build a career I care about." className="mt-1.5 w-full rounded-xl border border-sand bg-ivory px-4 py-3 text-sm text-ink focus:border-champagne focus:ring-2 focus:ring-champagne/20" />
+          <p className="mt-2 text-xs text-mist">The first task starts today. You can edit the roadmap after adding it.</p>
         </Modal>
       )}
     </section>

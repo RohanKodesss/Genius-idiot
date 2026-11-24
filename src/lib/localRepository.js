@@ -224,12 +224,24 @@ export async function reorderTask(taskId, newOrder) {
   return ok(null);
 }
 
-export async function markRestDay(goalId, date) {
+export async function markRestDay(goalId, date, hibernationId = null) {
   const store = data();
   if (store.restDays.some((r) => r.goal_id === goalId && r.date === date)) return ok(null);
-  const restDay = { id: uuid(), goal_id: goalId, date, created_at: new Date().toISOString() };
+  const restDay = {
+    id: uuid(), goal_id: goalId, date, created_at: new Date().toISOString(),
+    hibernation_id: hibernationId,
+  };
   write({ ...store, restDays: [...store.restDays, restDay] });
   return ok(restDay);
+}
+
+export async function cancelHibernation(hibernationId, fromDate) {
+  const store = data();
+  write({
+    ...store,
+    restDays: store.restDays.filter((row) => row.hibernation_id !== hibernationId || row.date < fromDate),
+  });
+  return ok(null);
 }
 
 export async function unmarkRestDay(goalId, date) {

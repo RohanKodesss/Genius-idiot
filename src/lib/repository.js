@@ -313,15 +313,25 @@ export async function reorderTask(taskId, newOrder) {
 }
 
 // ── Rest days ───────────────────────────────────────────────────────────────
-export async function markRestDay(goalId, date) {
-  if (DEMO_MODE) return local.markRestDay(goalId, date);
+export async function markRestDay(goalId, date, hibernationId = null) {
+  if (DEMO_MODE) return local.markRestDay(goalId, date, hibernationId);
+  const row = { goal_id: goalId, date };
+  if (hibernationId) row.hibernation_id = hibernationId;
   const response = await supabase
     .from('rest_days')
-    .insert({ goal_id: goalId, date })
+    .insert(row)
     .select();
   // 23505 = already marked; the toggle is idempotent.
   if (response.error?.code === '23505') return { ok: true, data: null };
   return unwrap(response);
+}
+
+export async function cancelHibernation(hibernationId, fromDate) {
+  if (DEMO_MODE) return local.cancelHibernation(hibernationId, fromDate);
+  return unwrap(
+    await supabase.from('rest_days').delete().eq('hibernation_id', hibernationId).gte('date', fromDate).select(),
+    { emptyIsOk: true },
+  );
 }
 
 export async function unmarkRestDay(goalId, date) {

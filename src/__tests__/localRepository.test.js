@@ -74,4 +74,27 @@ describe('demo repository persistence for new features', () => {
     const refreshed = await local.fetchAll();
     expect(refreshed.data.restDays.filter((row) => row.date === '2026-11-17')).toHaveLength(data.goals.length);
   });
+
+  it('cancels only current and future rows owned by a hibernation', async () => {
+    const goalId = 'hibernate-test';
+    await local.markRestDay(goalId, '2026-11-17');
+    await local.markRestDay(goalId, '2026-11-16', 'session-a');
+    await local.markRestDay(goalId, '2026-11-18', 'session-a');
+    expect((await local.cancelHibernation('session-a', '2026-11-17')).ok).toBe(true);
+    const remaining = (await local.fetchAll()).data.restDays.filter((row) => row.goal_id === goalId);
+    expect(remaining.sort((a, b) => a.date.localeCompare(b.date)).map((row) => [row.date, row.hibernation_id])).toEqual([
+      ['2026-11-16', 'session-a'],
+      ['2026-11-17', null],
+    ]);
+  });
+
+  it('persists multi-day progress on a task', async () => {
+    const { data } = await local.fetchAll();
+    const task = data.tasks[0];
+    expect((await local.updateTask(task.id, { total_est_minutes: 900 })).ok).toBe(true);
+    expect((await local.updateTask(task.id, { minutes_completed: 120 })).ok).toBe(true);
+    const saved = (await local.fetchAll()).data.tasks.find((row) => row.id === task.id);
+    expect(saved.total_est_minutes).toBe(900);
+    expect(saved.minutes_completed).toBe(120);
+  });
 });

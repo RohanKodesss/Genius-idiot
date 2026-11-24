@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { buildHibernationRestDays } from '../lib/hibernation';
+import { buildHibernationRestDays, listActiveHibernations } from '../lib/hibernation';
 import { computeProjection } from '../lib/projection';
 
 const today = '2026-11-17';
@@ -10,6 +10,7 @@ const makeRows = (overrides = {}) => buildHibernationRestDays({
   days: 3,
   createId: (() => { let id = 0; return () => `r${++id}`; })(),
   createdAt: '2026-11-17T12:00:00.000Z',
+  hibernationId: 'session-a',
   ...overrides,
 });
 
@@ -28,6 +29,18 @@ describe('buildHibernationRestDays', () => {
     const rows = makeRows({ restDays: [{ goal_id: 'a', date: today }] });
     expect(rows).toHaveLength(5);
     expect(rows.some((row) => row.goal_id === 'a' && row.date === today)).toBe(false);
+  });
+
+  it('lists active sessions by goal and resume date, ignoring manual and past rest days', () => {
+    const sessions = listActiveHibernations([
+      { goal_id: 'a', date: '2026-11-16', hibernation_id: 'past' },
+      { goal_id: 'a', date: '2026-11-17', hibernation_id: 'session-a' },
+      { goal_id: 'b', date: '2026-11-19', hibernation_id: 'session-a' },
+      { goal_id: 'b', date: '2026-11-20', hibernation_id: null },
+    ], [{ id: 'a', name: 'DSA' }, { id: 'b', name: 'Writing' }], today);
+    expect(sessions).toEqual([{
+      id: 'session-a', goalIds: ['a', 'b'], resumeAfter: '2026-11-19', names: ['DSA', 'Writing'],
+    }]);
   });
 
   it.each([0, -1, 1.5, 91])('rejects invalid durations (%s)', (days) => {
